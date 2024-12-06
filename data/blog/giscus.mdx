@@ -37,7 +37,7 @@ authors: ['default']
     ></script>
     ```
 
-2. integration into `vuepress-theme-hope`
+2. Integrate Giscus to `vuepress-theme-hope`
 
     ```ts
     # .vuepress/theme.ts
@@ -52,4 +52,13 @@ authors: ['default']
         category: "Announcements",
         categoryId: "DIC_kwDOJhPNTM4CWY5z",
       }
+    ```
+
+3. Integrate Giscus to `tailwind-nextjs-starter-blog`
+
+    ```.env
+    NEXT_PUBLIC_GISCUS_REPO=your_giscus_repo_here
+    NEXT_PUBLIC_GISCUS_REPOSITORY_ID=your_giscus_repository_id_here
+    NEXT_PUBLIC_GISCUS_CATEGORY=your_giscus_category_here
+    NEXT_PUBLIC_GISCUS_CATEGORY_ID=your_giscus_category_id_here
     ```
