@@ -16,7 +16,7 @@ const siteMetadata = {
   x: 'https://x.com/Shelton_coder',
   // facebook: 'https://facebook.com',
   // youtube: 'https://youtube.com',
-  linkedin: 'https://www.linkedin.com/in/xiaoteng-566040129',
+  linkedin: 'https://www.linkedin.com/in/xiaoteng-566040129/?locale=en_US',
   // threads: 'https://www.threads.net',
   // instagram: 'https://www.instagram.com',
   medium: 'https://medium.com/@shelton.xiaoteng.ma',
