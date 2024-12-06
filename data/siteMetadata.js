@@ -6,7 +6,7 @@ const siteMetadata = {
   description: 'Shelton',
   language: 'en-us',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://blog.sheltonma.top',
+  siteUrl: 'https://www.sheltonma.top',
   siteRepo: 'https://github.com/shelton-xiaoteng-ma',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.svg`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
