@@ -1,51 +1,55 @@
 ---
-title: '配置Giscus'
-date: 2023-05-10 16:04:14
-tag: ['Giscus']
-summary: ''
+title: 'Giscus Config'
+date: '2023-05-10 19:09:11'
+tags: ['Giscus']
+draft: false
+images: []
+summary: 'Configure Giscus to add comment function to the page'
+authors: ['default']
 ---
 
-## 配置
+## Config Giscus repository
 
-打开: <https://giscus.app/>, 按照说明设置公开仓库
+1. Create an public repository, eg: `giscus-discussions`
+2. Enable public repository `Discussions`, [Enabling or disabling GitHub Discussions for a repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/enabling-or-disabling-github-discussions-for-a-repository)
+3. Install `giscus app` to repository or account, [https://giscus.app/](https://giscus.app/#Configuration)
 
-- 创建公开仓库, 比如: `giscus-discussions`
-- 安装`giscus`app到github账号或当前仓库
-- 生效`Discussions`
-- 在页面配置后, 将如下消息配置在网页模版中即可生效
+## Use
 
-  ```html
-  <script
-    src="https://giscus.app/client.js"
-    data-repo="shelton-xiaoteng-ma/giscus-discussions"
-    data-repo-id="R_kgDOJhPNTA"
-    data-category="Announcements"
-    data-category-id="DIC_kwDOJhPNTM4CWY5z"
-    data-mapping="url"
-    data-strict="0"
-    data-reactions-enabled="1"
-    data-emit-metadata="0"
-    data-input-position="bottom"
-    data-theme="preferred_color_scheme"
-    data-lang="en"
-    crossorigin="anonymous"
-    async
-  ></script>
-  ```
+1. Use directly in webpage or webpage template
 
-- `vuepress-theme-hope`中使用
+    ```html
+    <script
+      src="https://giscus.app/client.js"
+      data-repo="your public repository"
+      data-repo-id="xxx"
+      data-category="xxx"
+      data-category-id="xxx"
+      data-mapping="url"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="bottom"
+      data-theme="preferred_color_scheme"
+      data-lang="en"
+      crossorigin="anonymous"
+      async
+    ></script>
+    ```
 
-  ```ts
-  # .vuepress/theme.ts
-  plugins: {
-    comment: {
-      /**
-       * Using Giscus
-      */
-      provider: "Giscus",
-      repo: "shelton-xiaoteng-ma/giscus-discussions",
-      repoId: "R_kgDOJhPNTA",
-      category: "Announcements",
-      categoryId: "DIC_kwDOJhPNTM4CWY5z",
-    }
-  ```
+2. integration into `vuepress-theme-hope`
+
+    ```ts
+    # .vuepress/theme.ts
+    plugins: {
+      comment: {
+        /**
+         * Using Giscus
+        */
+        provider: "Giscus",
+        repo: "shelton-xiaoteng-ma/giscus-discussions",
+        repoId: "R_kgDOJhPNTA",
+        category: "Announcements",
+        categoryId: "DIC_kwDOJhPNTM4CWY5z",
+      }
+    ```

@@ -1,0 +1,42 @@
+---
+title: VS code Snippets Config
+date: 2022-07-13 18:34:20
+tags: ['vscode']
+draft: false
+summary: 'VS Code configures code snippets for easy and quick creation'
+images: []
+authors: ['default']
+---
+
+## VS Code Snippets Config
+
+1. Configure Snippets
+
+   - `Ctrl + Shift + p`, input > `snippets`
+   - Select User Snippets: `Snippets:Configure Snippets`
+   - Select `New Global Snippets file`, Create new file: `mdx-snippets.json.code-snippets`
+   - markdown demo, [snippet generator](https://snippet-generator.app/)
+
+     ```json
+     "blog_frontmatter": {
+      "prefix": "blog frontmatter",
+      "body": [
+       "---",
+       "title: ",
+       "date: $CURRENT_YEAR-$CURRENT_MONTH-${CURRENT_DATE} $CURRENT_HOUR:$CURRENT_MINUTE:$CURRENT_SECOND",
+       "tags: []",
+       "draft: false",
+       "summary: ",
+       "images: []",
+       "authors: ['default']",
+       "---",
+       "",
+       ""
+      ],
+      "description": "blog_frontmatter"
+     },
+     ```
+
+2. Use
+
+when you type `blog frontmatter` in an MDX file, VS Code will auto-insert the code block template
