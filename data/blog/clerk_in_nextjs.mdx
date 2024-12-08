@@ -1,0 +1,118 @@
+---
+title: 'Integrate Clerk for authentication in your Next.js app'
+date: 2024-12-08 15:34:58
+tags: ['Clerk', 'Authentication', 'Next.js']
+draft: false
+summary: Integrate Clerk to Next.js app, and create custom sign-in and sign-up pages for your Next.js app with Clerk
+images: []
+authors: ['default']
+---
+
+## 1. Create Clerk APP [development]
+
+1. SignUp Clerk
+2. [Create App](https://dashboard.clerk.com/apps/new), select Sigin in options
+
+## 2. Integrate to Next.js
+
+1. Install packages
+
+    ```shell
+    npm install @clerk/nextjs
+    ```
+
+2. Set your environment variables
+
+    ```config
+    // .env.local
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+    CLERK_SECRET_KEY=
+    ```
+
+3. Update middleware.ts
+
+    ```ts
+    // src/middleware.ts
+    import { clerkMiddleware } from "@clerk/nextjs/server";
+
+    const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+
+    export default clerkMiddleware(async (auth, req) => {
+      const { userId, redirectToSignIn } = await auth();
+
+      if (!userId && isProtectedRoute(req)) {
+        return redirectToSignIn();
+      }
+    });
+
+    export const config = {
+      matcher: [
+        // Skip Next.js internals and all static files, unless found in search params
+        '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+        // Always run for API routes
+        '/(api|trpc)(.*)',
+      ],
+    };
+    ```
+
+4. Add ClerkProvider to app
+
+    ```ts
+    // src/app/layout.tsx
+    import {
+      ClerkProvider,
+    } from '@clerk/nextjs'
+    export default function RootLayout({
+      children,
+    }: Readonly<{
+      children: React.ReactNode;
+    }>) {
+      return (
+        <ClerkProvider>
+          <html lang="en">
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+              {children}
+            </body>
+          </html>
+        </ClerkProvider>
+      );
+    }
+    ```
+
+5. Visiting your app [http://localhost:3000](http://localhost:3000) and clicking the `Sign In` button will redirect you to the Clerk sign-in page.
+
+6. Clerk’s built-in sign-in/out functionality
+
+    ```ts
+    // src/app/(landing)/page.tsx
+    import { SignedIn, UserButton, SignedOut, SignInButton } from "@clerk/nextjs";
+
+    return (
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
+    );
+
+    "use client";
+    import { useAuth } from "@clerk/nextjs";
+    const { isSignedIn } = useAuth();
+
+    import { auth } from "@clerk/nextjs/server";
+    const {userId, sessionId} = await auth();
+    ```
+
+## 3. Create custom sign-in and sign-up pages
+
+1. Create `src/app/(auth)/sign-in/[[...sign-in]]/page.tsx`
+2. Set environment variables: `NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"`
+
+## 4. Deployment
+
+### 1. Deploying a Clerk app to Vercel
+
+[Deploying a Clerk app to Vercel](https://clerk.com/docs/deployments/deploy-to-vercel)
