@@ -8,8 +8,32 @@ images: []
 authors: ['default']
 ---
 
-## Setup
+## 1. create next app
 
-1. create next app `npx create-next-app@latest app_name`
-2. init shadcn `npx shadcn@latest init`
-3. add shadcn ui `npx shadcn@latest add button`
+```shell
+npx create-next-app@latest app_name
+cd app_name
+```
+
+## 2. setup shadcn
+
+1. Init shadcn: `npx shadcn@latest init`
+
+2. Generate new files
+    - tailwind.config.ts
+    - src/app/globals.css
+    - src/lib/utils.ts
+    - components.json
+
+3. To ensure that all your components correctly apply Tailwind CSS, you need to include the paths to your components, pages, and any other relevant files in the tailwind.config.js file
+
+4. Fix eslint error: A `require()` style import is forbidden
+
+    ```ts
+    // tailwind.config.ts
+    import tailwindcssAnimate from "tailwindcss-animate";
+    
+    plugins: [tailwindcssAnimate],
+    ```
+
+5. Add shadcn ui componments. run `npx shadcn@latest add button`, will create the Button component at `src/components/ui/button.tsx`.
