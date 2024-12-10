@@ -1,0 +1,59 @@
+---
+title: Hono + Next.js + Clerk
+date: 2024-12-10 22:15:55
+tags: ['Hono', 'Next.js', 'Clerk']
+draft: false
+summary: Integrate Hono to Next.js app, with Clerk auth
+images: []
+authors: ['default']
+---
+
+## [Use Clerk with Hono middleware](https://clerk.com/changelog/2023-11-08)
+
+1. Install Packages
+
+    ```shell
+    pnpm install hono @hono/clerk-auth @clerk/backend
+    ```
+
+2. Set environment variables or share Next config
+
+    ```config
+    // .env.local
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+    CLERK_SECRET_KEY=
+    ```
+
+3. Enable middleware in hono
+
+    ```ts
+    // src/app/api/[[...route]]/route.ts
+    import { clerkMiddleware, getAuth } from '@hono/clerk-auth'
+
+    // app.use('*', clerkMiddleware())
+    app.use(
+      "*",
+      clerkMiddleware({
+        secretKey: process.env.CLERK_SECRET_KEY,
+        publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      })
+    );
+    ```
+
+4. Use getAuth
+
+    ```ts
+    // src/app/api/[[...route]]/hello.ts
+    ...
+    const app = new Hono().get("/", (c) => {
+      const auth = getAuth(c)
+
+      if (!auth?.userId) {
+        return c.json({
+          message: 'Unauthorized',
+        }, 401)
+      }
+      return c.json({ message: "Hello World" });
+    });
+    ...
+    ```
