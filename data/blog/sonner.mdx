@@ -1,0 +1,40 @@
+---
+title: Sonner - Shadcn component
+date: 2024-09-19 21:49:19
+tags: ['sonner', 'shadcn']
+draft: false
+summary: Use Sonner component in Next.js
+images: []
+authors: ['default']
+---
+
+1. Add `pnpm shadcn@latest add sonner`
+2. Enable in global
+
+    ```ts
+    // src/app/layout.tsx
+    import { Toaster } from "@/components/ui/sonner";
+    ...
+    <body
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+      <Providers>
+        <Toaster />
+        <Modals />
+        {children}
+      </Providers>
+    </body>
+    ...
+    ```
+
+3. Use in component
+
+    ```ts
+    import { toast } from "sonner";
+    ... 
+    const handleSubmit = () => {
+      ...
+      toast.success("Workspace created");
+      toast.error("Something went wrong");
+    };
+    ```
