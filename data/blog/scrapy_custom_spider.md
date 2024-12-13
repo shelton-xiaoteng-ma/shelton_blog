@@ -1,0 +1,128 @@
+---
+title: Custom Scrapy Spider
+date: 2023-05-19 14:59:08
+tags: ['scrapy']
+draft: false
+summary: Use the custom MySpider class that provide unified log configuration and set_stats, enabling more convenient and enriched custom metrics.
+images: []
+authors: ['default']
+---
+
+## 1. Custom MySpider
+
+```python
+import scrapy
+import time
+import os
+import logging
+import datetime
+from scrapy.crawler import Crawler
+
+
+class MySpider(scrapy.Spider):
+    """MySpider Custom Spider
+
+    1. Custom metrics: `inc_stats()` and `set_stats()` allow direct manipulation of `scrapy.StatsCollector` for flexible metrics.
+    2. `update_settings()`: Adds `spider_name` for convenient log file generation.
+    3. Easy log customization with `install_customize_root_handler`.
+    4. `_set_crawler()`: Automatically adds `crawler_batch_id` and `spider_id` to spider logs.
+    """
+
+    def __init__(self, name=None, **kwargs):
+        super().__init__(name, **kwargs)
+        MY_LOG_HELPER = self.settings.getbool('MY_LOG_HELPER')
+        if MY_LOG_HELPER:
+            self.install_customize_root_handler(self.settings)
+        self.spider_id = '{}_{}'.format(self.name, int(time.time()*1000))
+
+    @classmethod
+    def update_settings(cls, settings):
+        """
+        Updates `settings` if `configure_logging` is used and log files need to be named by `spider_name`.
+        Ensures that `settings` is accessible earlier, allowing full configuration in `__init__` instead of waiting for `Crawl._create_spider`.
+        """
+        settings.set('spider_name', cls.name)
+        cls.settings = settings
+        super(MySpider, cls).update_settings(settings)
+
+    def _set_crawler(self, crawler: Crawler):
+        """Executes after `MySpider.__init__` to add additional configurations to `stats`.
+
+        Args:
+            crawler (Crawler): The crawler instance.
+        """
+        super()._set_crawler(crawler)
+        crawler.stats.set_value('spider_id', self.spider_id)
+        if hasattr(self, "crawler_batch_id"):
+            self.set_stats('crawler_batch_id', self.crawler_batch_id)
+        else:
+            self.set_stats('crawler_batch_id', datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d'))
+
+    def inc_stats(self, name, value=1):
+        """Custom metric for the spider added to `corestats`.  
+           Example: `self.inc_stats('success_cnt', 1)`
+
+        Args:
+            name (str): Metric name.
+            value (int, optional): Metric value. Defaults to 1.
+        """
+        self.crawler.stats.inc_value(name, value)
+
+    def set_stats(self, name, value=0):
+        """Sets a specific metric value."""
+        self.crawler.stats.set_value(name, value)
+
+    def install_customize_root_handler(self, settings):
+        """Custom `TimedRotatingFileHandler` for logs.
+
+        Args (in `settings.py`):
+            MY_LOG_HELPER: Set to `True` to enable log file writing.
+            BASIC_LOG_DIR: Root directory for logs, defaults to `/logs`.
+            Log file format: `{BASIC_LOG_DIR}/{bot_name}/{spider_name}_YYYY_mm_dd_HH_MM_SS_ffffff.log`
+        """
+        BASIC_LOG_DIR = settings.get('BASIC_LOG_DIR', '/logs')
+        datetime_str = datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d_%H_%M_%S_%f')
+        file_dir = os.path.join(BASIC_LOG_DIR, settings.get('BOT_NAME', 'bot_name'))
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        filename = os.path.join(file_dir, '{}_{}.log'.format(settings.get('spider_name', 'spider_name'), datetime_str))
+        encoding = settings.get('LOG_ENCODING')
+        file_handler = logging.handlers.TimedRotatingFileHandler(
+                filename=filename,
+                when='midnight',
+                backupCount=20,
+                encoding=encoding,
+            )
+        formatter = logging.Formatter(
+            fmt="%(asctime)s %(name)s %(filename)s %(lineno)s %(levelname)s %(message)s",
+            datefmt=settings.get('LOG_DATEFORMAT')
+        )
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(settings.get('LOG_LEVEL'))
+        logging.root.addHandler(file_handler)
+```
+
+## 2. Usage
+
+```python
+from customs import MySpider
+import scrapy
+
+class ExampleSpider(MySpider):
+    """Example Spider
+
+    1. Test custom arguments: `-a crawler_batch_id='11' -a custom_metrics='custom_metrics01'`
+    2. Test logging: `MY_LOG_HELPER=True` logs saved at `/logs/bot_name/spider_name...log`.
+    """
+    name = "example"
+    allowed_domains = ["example.com"]
+    start_urls = ["https://example.com"]
+    custom_settings = {
+        'MY_LOG_HELPER': True,
+        'BASIC_LOG_DIR': './logs'
+    }
+
+    def parse(self, response):
+        self.inc_stats('success_cnt', 1)
+        pass
+```
