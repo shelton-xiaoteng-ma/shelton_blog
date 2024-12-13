@@ -1,0 +1,139 @@
+---
+title: CustomLogStats push stats to redis
+date: 2023-05-25 14:59:08
+tags: ['scrapy']
+draft: false
+summary: The CustomLogStats component extends the functionality of Scrapy by pushing collected statistics to a Redis server. 
+images: []
+authors: ['default']
+---
+
+1. CustomLogStats
+
+    ```python
+    // scrapy/extensions/customLogStats.py
+    import logging
+    import os
+    import getpass
+    import re
+    import copy
+    import datetime
+    import json
+    import traceback
+
+    from scrapy.exceptions import NotConfigured
+    from scrapy.extensions.logstats import LogStats
+
+    from redis_helper import RedisHelper
+
+    logger = logging.getLogger(__name__)
+
+    class CustomLogStats(LogStats):
+        """
+        push logstats to redis
+
+        Usage:
+        default enable, for disable In settings.py
+
+        EXTENSIONS = {
+            'scrapy.extensions.logstats.LogStats': None,        
+            'scrapy.extensions.customLogStats.CustomLogStats': 0, 
+        }
+        """
+
+        def __init__(self, stats, interval) -> None:
+            self.r = RedisHelper().client
+            super().__init__(stats, interval=interval)
+
+        @classmethod
+        def from_crawler(cls, crawler):
+            stats = crawler.stats
+            settings = crawler.settings
+            # more stats
+            stats.set_value('node_name', os.uname().nodename)
+            stats.set_value('user_name', getpass.getuser())
+            stats.set_value('spider_name', crawler.spidercls.name)
+            stats.set_value('project_name', settings.get('project_name') or settings.get('BOT_NAME') or settings.get('spider_name'))
+            stats.set_value('concurrent_requests', settings.get('CONCURRENT_REQUESTS'))
+            stats.set_value('concurrent_requests_per_domain', settings.get('CONCURRENT_REQUESTS_PER_DOMAIN'))
+            stats.set_value('download_delay', settings.get('DOWNLOAD_DELAY'))
+            # downloader middlewares proxy state
+            DOWNLOADER_MIDDLEWARES = settings.getdict('DOWNLOADER_MIDDLEWARES')
+            stats.set_value('downloader_middlewares', settings.getdict('DOWNLOADER_MIDDLEWARES'))
+            stats.set_value('proxy_channel', proxy_channel)
+            return super(CustomLogStats, cls).from_crawler(crawler)
+
+        def spider_opened(self, spider):
+            self.pagesprev_200 = 0
+            self.prev_downloader_request_bytes = 0
+            self.prev_downloader_response_bytes = 0
+            super().spider_opened(spider)
+
+        def log(self, spider):
+            # request rate
+            items = self.stats.get_value('item_scraped_count', 0)
+            pages = self.stats.get_value('response_received_count', 0)
+            pages_200 = self.stats.get_value('downloader/response_status_count/200', 0)
+            irate = (items - self.itemsprev) * self.multiplier
+            prate = (pages - self.pagesprev) * self.multiplier
+            prate_200 = (pages_200 - self.pagesprev_200) * self.multiplier
+            self.pagesprev, self.itemsprev, self.pagesprev_200 = pages, items, pages_200
+            downloader_request_bytes = self.stats.get_value('downloader/request_bytes', 0)
+            downloader_response_bytes = self.stats.get_value('downloader/response_bytes', 0)
+            downloader_request_bytes_rate = (downloader_request_bytes-self.prev_downloader_request_bytes)* self.multiplier
+            downloader_response_bytes_rate = (downloader_response_bytes-self.prev_downloader_response_bytes)* self.multiplier
+            self.prev_downloader_request_bytes, self.prev_downloader_response_bytes = downloader_request_bytes, downloader_response_bytes
+            # output LogStats
+            msg = ("Crawled %(pages)d pages (at %(pagerate)d pages/min), "
+                "scraped %(items)d items (at %(itemrate)d items/min)")
+            log_args = {'pages': pages, 'pagerate': prate,
+                        'items': items, 'itemrate': irate}
+            logger.info(msg, log_args, extra={'spider': spider})
+
+            rate_info = {
+                'items_rate': irate,
+                'pages_rate': prate,
+                'pages_200_rate': prate_200,
+                'downloader_request_bytes_rate': downloader_request_bytes_rate,
+                'downloader_response_bytes_rate': downloader_response_bytes_rate,
+            }
+            stat_info = copy.deepcopy(self.stats.get_stats())
+            stat_info.update(rate_info)
+            stat_info = self.update_more_info(stat_info)
+            self.push_redis('custom_states', stat_info)
+
+        def update_more_info(self, stat_info):
+            stat_info['ts'] = str(datetime.datetime.now())
+            stat_info['ts_string'] = str(datetime.date.today())
+            return self._format_key(stat_info)
+
+        def _format_key(self, stat_info):
+            # format state key
+            tmp_stat_info = {}
+            for k, v in stat_info.items():
+                tmp_stat_info[re.sub(r'[/ ]', '_', k).lower().strip()] = v
+            return tmp_stat_info
+
+        def spider_closed(self, spider, reason):
+            # spider start/end info
+            stat_info = copy.deepcopy(self.stats.get_stats())
+            stat_info = self.update_more_info(stat_info)
+            self.push_redis('custom_states', stat_info)
+            super().spider_closed(spider, reason)
+
+        def push_redis(self, redis_key, data):
+            try:
+                self.r.lpush(redis_key, json.dumps(data, default=str))
+            except:
+                logger.error('CustomLogStats push metrics to redis failed! {}'.format(traceback.format_exc()))
+    ```
+
+2. Usage
+
+    ```python
+    // src/xxx_scrapy/settings.py
+    EXTENSIONS = {
+        'scrapy.extensions.logstats.LogStats': None,        
+        'scrapy.extensions.customLogStats.CustomLogStats': 0, 
+    }
+    ```
