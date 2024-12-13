@@ -1,0 +1,47 @@
+---
+title: Protobuf 基本使用
+date: 2023-03-03 11:15:56
+tags: ['protobuf']
+draft: false
+summary: 面对使用protobuf格式的http请求, 了解基本概念及应对方法
+images: []
+authors: ['default']
+---
+
+## 1. 介绍
+
+Protobuf（Protocol Buffers），是 Google 开发的一种跨语言、跨平台的可扩展机制，用于序列化结构化数据。
+与 XML 和 JSON 格式相比，protobuf 更小、更快、更便捷。protobuf 目前支持 C++、Java、Python、Objective-C，如果使用 proto3，还支持 C#、Ruby、Go、PHP、JavaScript 等语言。
+
+- GitHub 地址：[protobuf](https://github.com/protocolbuffers/protobuf)
+
+1. 优点：
+   1. 性能好, 序列化和反序列化快, 占用空间小
+   2. 跨语言
+2. 缺点：
+   1. 二进制格式可读性差：为了提高性能，protobuf 采用了二进制格式进行编码，这直接导致了可读性差。
+   2. 缺乏自描述: XML 是自描述的，而 protobuf 不是，不配合定义的结构体是看不出来什么作用的。
+
+## 2. 使用
+
+1. [下载protobuf](https://github.com/protocolbuffers/protobuf/releases/latest)
+2. demo 参考: [mercari jp](https://github.com/shelton-xiaoteng-ma/xiaoteng_demo/tree/master/src/protobuf/mercari_jp)
+3. 常用命令:
+
+    ```shell
+    # 生成python模版
+    protoc --python_out=. mercari_search_request.proto
+    ```
+
+4. 在推测proto文件时, 可以尝试修改请求headers的`"accept": "application/protobuf",`修改为`"accept": "application/json",`, 如果能正常返回json格式的数据, 可以直接使用, 也可以转换, 避免后续服务器禁用json格式的响应
+
+### Preview protobuf request by charles
+
+Charles supports preview protobuf default, however somehow, some responses are not correctly recognized as protobuf, so parsing mode needs to be manually specified. `right click on your request, View Response As, Protocol Buffers`
+
+### 参考文档
+
+- 官网地址：[https://protobuf.dev/overview/](https://protobuf.dev/overview/)
+- [Python Generated Code Guide](https://protobuf.dev/reference/python/python-generated/)
+- [nesting or submessage](https://stackoverflow.com/questions/18376190/attributeerror-assignment-not-allowed-to-composite-field-task-in-protocol-mes)
+- [Protobuf协议逆向解析-APP爬虫](https://www.yuanrenxue.cn/app-crawl/parse-protobuf.html)

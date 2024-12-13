@@ -1,0 +1,85 @@
+---
+title: 爬取使用Protobuf作为传输格式的api
+date: 2023-07-14 18:01:41
+tags: [scrapy, protobuf]
+draft: false
+summary: 
+images: []
+authors: ['default']
+---
+
+## 问题描述
+
+接口抓包发现内容是二进制格式, charles能识别一些protobuf的内容, 但并不完全奏效. 看headers会发现`"content-type": "application/x-protobuf"`
+
+## 解决方案
+
+python操作protobuf参考: [Protobuf 基本使用](./protobuf)
+
+1. 注意事项
+    - 抓包后charles不能正确解析protobuf格式, 可以右键使用: `View Response/Request As, Protocol Buffers`
+    - 通常服务器后台是兼容json传输的, 所以对于响应, 如果非必要, 直接修改接受json格式即可
+    - 对于repeat字段, python转换时`5:1 5:2`会被转换成`5: [1, 2]`, 所以尽量避免, 可以拆分请求
+2. 解析protobuf模版的思路
+    - 可以借助charles解析结构, 达到下面这种格式
+
+        ```js
+        2: 120
+        3: "v1:1"
+        4: "180a77e4-1917-4d18-9544-212ed0394c70"
+        7 {
+            3: 3
+            17: 553
+        }
+        8: 2
+        12: 1
+        15: 1
+        ```
+
+    - 然后通过操作不同的请求来猜出对自己有用的参数, 不确定的可以默认格式
+
+        ```js
+        {
+            'limit': 120, 
+            'page': 'v1:3', 
+            'device_id': '180a77e4-1917-4d18-9544-212ed0394c70', 
+            'filter': {
+                'field3': 3, 
+                'status': 1,
+                'status': 2,
+                'brand_id': 111,
+                'category_id': 775,
+            }, 
+            'field8': 2, 
+            'field12': 1, 
+            'field15': 1
+        }
+        ```
+
+    - 编写proto模版
+
+        ```js
+        message Filter {
+            int32 field3 = 3;
+            int32 status = 5;
+            // repeated 在转换后 5:[1, 2], 不是 5:1 5:2 这种格式, 所以先不用repeated
+            // repeated int32 status = 5;
+            int32 brand_id = 7;
+            int32 category_id = 17;
+        }
+        message Body {
+            int32 limit = 2;
+            string page = 3;
+            string device_id = 4;
+            Filter filter = 7;
+            int32 field8 = 8;
+            int32 field12 = 12;
+            int32 field15 = 15;
+        }
+        ```
+
+    - 生成python文件方便调用, 参考: [mercari protobuf](https://github.com/shelton-xiaoteng-ma/xiaoteng_demo/blob/master/src/protobuf/mercari_jp/test_mercari.py):
+
+        ```shell
+        protoc --python_out=. xxx_request.proto
+        ```
