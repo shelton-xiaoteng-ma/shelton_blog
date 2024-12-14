@@ -1,0 +1,38 @@
+---
+title: 'React Tips: Scroll to the bottom'
+date: 2024-3-14 23:46:03
+tags: ['React']
+draft: false
+summary: Make a scrollable component automatically scroll to the bottom whenever its content changes
+images: []
+authors: ['default']
+---
+
+Make a scrollable component automatically scroll to the bottom whenever its content changes.
+
+## Implementation in React
+
+```ts
+import React, { useEffect, useRef } from "react";
+
+const AutoScrollDiv = ({ children }: { children: React.ReactNode }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [children]); // Run the effect whenever the content changes
+
+  return (
+    <div
+      className="flex-1 overflow-y-auto"
+      ref={scrollRef}
+    >
+      {children}
+    </div>
+  );
+};
+
+export default AutoScrollDiv;
+```
