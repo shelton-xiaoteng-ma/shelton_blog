@@ -1,0 +1,68 @@
+---
+title: 'React Tips: Don't Add useForm Instance to useEffect Dependency Array'
+date: 2024-12-16 23:46:03
+tags: ['React']
+draft: false
+summary: Adding a useForm instance (from libraries like react-hook-form) to the dependency array of a useEffect often causes infinite re-renders because the useForm function creates a new form instance on every render. Since its reference changes every time, React triggers the useEffect continuously.
+images: []
+authors: ['default']
+---
+
+## The Error
+
+When you try to reset a form (using a useForm instance) inside a useEffect:
+
+```ts
+useEffect(() => {
+  if (imageData?.imageUrl) {
+    setImage(imageData.imageUrl);
+    form.reset({});
+  }
+}, [imageData, form]);
+```
+
+you might encounter the following error:
+
+Error Message: `Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.`
+
+## Why Does This Happen?
+
+The issue stems from how React manages dependencies in hooks and how useForm behaves:
+
+1. New Instance on Every Render
+The useForm hook creates a new form instance every time the component renders. Its reference changes even if the state of the form remains the same.
+2. Dependency Array Behavior
+React compares dependencies in the useEffect dependency array using shallow reference comparison. A new form instance on each render triggers the useEffect repeatedly, leading to an infinite loop.
+
+## How to Fix
+
+1. Ignore the Warning with Comment
+
+    ```ts
+    useEffect(() => {
+      if (imageData?.imageUrl) {
+        setImage(imageData.imageUrl);
+        form.reset({});
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imageData]);
+    ```
+
+2. Use a Ref for form.reset
+
+    ```ts
+    const resetRef = useRef(form.reset);
+
+    useEffect(() => {
+      if (imageData?.imageUrl) {
+        setImage(imageData.imageUrl);
+        resetRef.current({}); // Use ref for `reset`
+      }
+    }, [imageData]);
+    ```
+
+## Conclusion
+
+This issue highlights the importance of understanding how dependencies in hooks are evaluated. When working with libraries like react-hook-form, it’s crucial to avoid passing dynamic references like a useForm instance to the useEffect dependency array. Instead, use techniques like ignoring the dependency warning or utilizing refs to ensure stable references.
+
+By applying these solutions, you can avoid infinite re-renders and ensure a smooth form handling experience in React.
