@@ -1,0 +1,282 @@
+---
+title: Replicate API + Next.js + Hono + React Query
+date: 2024-12-15 17:30:35
+tags: ['AI Integration', 'Next.js', 'React Query', 'Hono']
+draft: false
+summary: Integrate the Replicate API with a Next.js application using Hono and React Query to generate AI-powered images.
+images: []
+authors: ['default']
+---
+
+If you’re interested in this blog, you can explore the project at [unleash-ai](https://github.com/shelton-xiaoteng-ma/unleash-ai).
+
+## 1. Setup and Configuration
+
+Create a Replicate Account
+
+1. Sign up for a Replicate account.
+2. Generate an API token from [replicate.com/account/api-tokens](https://replicate.com/account/api-tokens).
+
+## 2. Integration to Next.js
+
+1. Install packages
+
+    ```shell
+    npm install replicate
+    ```
+
+2. Set environment variables, Add the Replicate API token to your .env file
+
+    ```json
+    REPLICATE_API_TOKEN=
+    ```
+
+3. Create replicate client
+
+    ```ts
+    // src/lib/replicate.ts
+    import Replicate from "replicate";
+
+    export const replicate = new Replicate({
+      auth: process.env.REPLICATE_API_TOKEN,
+    });
+    ```
+
+4. Create api
+
+    ```ts
+    // src/app/api/[[...route]]/image.ts
+    import { replicate } from "@/lib/replicate";
+    import { getAuth } from "@hono/clerk-auth";
+    import { zValidator } from "@hono/zod-validator";
+    import { Hono } from "hono";
+
+    import { z } from "zod";
+
+    const app = new Hono()
+      .post(
+        "/",
+        zValidator(
+          "json",
+          z.object({
+            prompt: z.string(),
+            aspectRatio: z.string(),
+            outputFormat: z.string(),
+            modelName: z
+              .string()
+              .optional()
+              .default(process.env.REPLICATE_DEFAULT_MODEL_ID!),
+          })
+        ),
+        async (c) => {
+          const auth = getAuth(c);
+
+          if (!auth?.userId) {
+            return c.json(
+              {
+                message: "Unauthorized",
+              },
+              401
+            );
+          }
+
+          const { prompt, aspectRatio, outputFormat, modelName } =
+            c.req.valid("json");
+
+          try {
+            const options = {
+              model: modelName,
+              input: {
+                prompt: prompt,
+                aspect_ratio: aspectRatio,
+                output_format: outputFormat,
+              },
+            };
+            const prediction = await replicate.predictions.create(options);
+
+            if (prediction?.error) {
+              return c.json({ detail: prediction.error }, 500);
+            }
+
+            return c.json({ prediction }, 200);
+          } catch (error) {
+            return c.json({ message: "Internal server error", error: error }, 500);
+          }
+        }
+      )
+      .get("/:id", zValidator("param", z.object({ id: z.string() })), async (c) => {
+        const { id } = c.req.valid("param");
+        const prediction = await replicate.predictions.get(id);
+
+        if (prediction?.error) {
+          return c.json({ detail: prediction.error }, 500);
+        }
+        let imageUrl: string | null = null;
+        // type Status = "starting" | "processing" | "succeeded" | "failed" | "canceled";
+        if (prediction?.status === "succeeded") {
+          imageUrl = prediction.output[0];
+        }
+        return c.json(
+          {
+            prediction_status: prediction?.status,
+            imageUrl: imageUrl,
+          },
+          200
+        );
+      });
+
+    export default app;
+    ```
+
+5. Create React Query Mutations
+
+    1. `useImageCreatePrediction`
+
+        ```ts
+        // src/features/image/api/use-image-create-prediction.tsx
+        import { client } from "@/lib/hono";
+        import { useMutation } from "@tanstack/react-query";
+        import { InferRequestType, InferResponseType } from "hono";
+        import { toast } from "sonner";
+
+        export type ResponseType = InferResponseType<
+          typeof client.api.image.$post,
+          200
+        >;
+
+        type RequestType = InferRequestType<typeof client.api.image.$post>["json"];
+
+        export const useImageCreatePrediction = () => {
+          const mutation = useMutation<ResponseType, Error, RequestType>({
+            mutationFn: async (json) => {
+              const response = await client.api.image.$post({ json });
+              if (!response.ok) {
+                throw new Error("Something went wrong");
+              }
+              return await response.json();
+            },
+            onError: () => {
+              toast.error("Failed to send message");
+            },
+          });
+          return mutation;
+        };
+
+        ```
+
+    2. `useImageGetPrediction`
+
+        ```ts
+        // src/features/image/api/use-image-get-prediction.tsx
+        import { client } from "@/lib/hono";
+        import { replicatePendingStatus } from "@/lib/replicate";
+        import { useQuery } from "@tanstack/react-query";
+        import { InferResponseType } from "hono";
+
+        export type ResponseType = InferResponseType<
+          (typeof client.api.image)[":id"]["$get"],
+          200
+        >;
+
+        const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        export const useImageGetPrediction = (id: string | null) => {
+          const query = useQuery({
+            enabled: !!id,
+            queryKey: ["image", { id }],
+            queryFn: async () => {
+              if (!id) return null;
+              await delay(3000);
+              const response = await client.api.image[":id"].$get({
+                param: { id },
+              });
+              if (!response.ok) {
+                throw new Error("Failed to fetch project");
+              }
+              return await response.json();
+            },
+            retry: (failureCount, error) => {
+              if (error?.message === "Failed to fetch prediction") {
+                return false;
+              }
+              return failureCount < 5;
+            },
+            refetchInterval: (data) => {
+              if (data.state.data?.prediction_status === "processing") {
+                return 2000;
+              }
+              if (data.state.data?.prediction_status === "starting") {
+                return 5000;
+              }
+              return false;
+            },
+          });
+
+          const isPending =
+            query.isFetching ||
+            (query.data?.prediction_status &&
+              replicatePendingStatus.includes(query.data.prediction_status));
+          return { ...query, isPending };
+        };
+        ```
+
+6. Use the Mutations in Page
+
+    ```ts
+    // src/app/page.tsx
+    ...
+    const predictionIdRef = useRef<string | null>(null);
+    const { mutate, isPending: isPendingCreatePrediction } =
+      useImageCreatePrediction();
+
+    const { data: imageData, isLoading: isLoadingImage } = useImageGetPrediction(
+      predictionIdRef.current
+    );
+
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+      setImage(null);
+      mutate(
+        {
+          prompt: values["prompt"],
+          aspectRatio: values["aspectRatio"],
+          outputFormat: values["outputFormat"],
+        },
+        {
+          onSuccess: (data: ResponseType) => {
+            predictionIdRef.current = data.prediction.id;
+          },
+          onError: () => {
+            toast.error("Generate Image went wrong.");
+          },
+        }
+      );
+    };
+    ...
+    ```
+
+7. Configure image hosts
+
+    ```ts
+    // next.config.ts
+    const nextConfig: NextConfig = {
+      images: {
+        remotePatterns: [
+          {
+            protocol: "https",
+            hostname: "replicate.com",
+          },
+          {
+            protocol: "https",
+            hostname: "replicate.delivery",
+          },
+        ],
+      },
+    };
+    ```
+
+## 3. Conclusion
+
+1. Using Hono API allows you to create versatile and reusable APIs that can serve multiple applications beyond your current project.
+2. Leveraging React Query’s refetchInterval feature enables you to efficiently poll the prediction status, ensuring seamless updates without manually triggering requests.
+
+These tools, combined with the Replicate API, make it easier to integrate AI-powered features into your Next.js applications while maintaining a clean and modular architecture.
