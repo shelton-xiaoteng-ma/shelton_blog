@@ -68,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       // className={`${space_grotesk.variable} scroll-smooth`}
       suppressHydrationWarning
     >
+      <link rel="icon" href={`${basePath}/static/favicons/favicon.ico`} sizes="any" />
       <link
         rel="apple-touch-icon"
         sizes="76x76"
@@ -85,10 +86,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         sizes="16x16"
         href={`${basePath}/static/favicons/favicon-16x16.png`}
       />
-      <link rel="manifest" href={`${basePath}/static/favicons/site.webmanifest`} />
+      <link rel="manifest" href={`${basePath}/static/favicons/site.webmanifest`}></link>
       <link
         rel="mask-icon"
-        href={`${basePath}/static/favicons/safari-pinned-tab.svg`}
+        href={`${basePath}/static/favicons/favicon-16x16.png`}
         color="#5bbad5"
       />
       <meta name="google-adsense-account" content="ca-pub-5335003214354505"></meta>
