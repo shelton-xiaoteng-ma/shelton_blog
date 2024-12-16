@@ -1,0 +1,38 @@
+---
+title: 'React Tips: Merge Hook Status from Multiple Hooks'
+date: 2024-10-8 15:08:34
+tags: ['React']
+draft: false
+summary: Show how to effectively combine loading statuses from multiple React hooks using useMemo. This approach ensures your UI reflects accurate loading states while maintaining optimal performance.
+images: []
+authors: ['default']
+---
+
+## Scenario
+
+When working with APIs, such as the Replicate API for generating images, you often need to track multiple loading statuses. These statuses come from different hooks or data sources, and you might want to merge them into a single isLoading state for better UI management.
+
+Here’s how you can achieve this efficiently.
+
+## Solution
+
+Using useMemo, you can calculate the isLoading state by merging multiple statuses. The useMemo hook ensures that the derived value is recalculated only when its dependencies change, improving performance and preventing unnecessary re-renders.
+
+For example, with the Replicate API, you might have multiple sources of loading states:
+
+```ts
+export const replicatePendingStatus = ["starting", "processing"] as Status[];
+
+const isLoading = useMemo(() => {
+  return (
+    isLoadingImage ||
+    isPendingCreatePrediction ||
+    (imageData?.prediction_status &&
+      replicatePendingStatus.includes(imageData?.prediction_status))
+  );
+}, [isLoadingImage, isPendingCreatePrediction, imageData]);
+```
+
+## Conclusion
+
+Managing multiple hook states in React can get tricky, especially when determining whether the component is loading. By combining useMemo with well-structured logic, you can streamline your loading state management, making your code more efficient and easier to maintain.
