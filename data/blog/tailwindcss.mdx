@@ -1,0 +1,84 @@
+---
+title: "Quick Overview of Tailwind CSS"
+date: 2024-09-06 11:06:11
+tags: ["Tailwind CSS"]
+draft: false
+summary: A quick guide to Tailwind CSS, covering essential utilities like background color, text color, spacing, and alignment. And explains responsive design, pseudo-classes, and customization with tailwind.config.js. Tailwind CSS enables efficient, utility-first styling for modern, responsive web designs.
+images: []
+authors: ['default']
+---
+
+## Quick Overview of Tailwind CSS
+
+1. Common Utilities
+
+    | Feature      | Class Example |
+    |:-------------|:--------------|
+    | Background Color | bg-red-500 |
+    | Text Color   | text-blue-700 |
+    | Margin       | m-4, mt-2 |
+    | Padding      | p-4, px-2 |
+    | Alignment    | text-center, flex justify-end |
+    | Font Weight  | font-bold, font-light |
+    | Shadow       | shadow-lg |
+    | Width        | w-1/2, w-full |
+    | Display      | block, hidden |
+
+    ```ts
+    <div class="bg-blue-500 text-white">Blue background, white text</div>
+    <div class="text-red-500">Red text</div>
+    // Spacing
+    // Margin: m-{size}
+    // Padding: p-{size}
+    <div class="m-4 p-2">Margin and Padding</div>
+    <div class="mt-2 mb-4 ml-6 mr-8">Individual margin settings</div>
+
+    // Layout
+    // Flexbox:
+    <div class="flex justify-center items-center">Center alignment</div>
+    // Grid:
+    <div class="grid grid-cols-3 gap-4">Three-column layout</div>
+
+    // Borders
+    <div class="border border-gray-300 rounded-lg">Element with border</div>
+
+    // Border Radius
+    <div class="rounded-full">Circular element</div>
+    <div class="rounded-lg">Large border radius</div>
+
+    // Typography
+    <div class="text-xl font-bold">Bold large text</div>
+    <div class="text-center">Centered text</div>
+
+    // Shadows
+    <div class="shadow-md">Medium shadow</div>
+    ```
+
+2. Responsive Design
+    Use the prefix to specify breakpoints like `<div class="text-sm md:text-lg">Small font on small screens, large font on larger screens</div>`:
+    - sm: (min-width 640px)
+    - md: (min-width 768px)
+    - lg: (min-width 1024px)
+    - xl: (min-width 1280px)
+
+3. Pseudo-classes
+
+    ```ts
+    <div class="hover:bg-blue-600">Change background color on hover</div>
+    <input class="focus:ring-2 focus:ring-blue-500" />
+    ```
+
+4. Customization
+
+    ```ts
+    // tailwind.config.js
+    module.exports = {
+      theme: {
+        extend: {
+          colors: {
+            customColor: '#ff5733',
+          },
+        },
+      },
+    }
+    ```

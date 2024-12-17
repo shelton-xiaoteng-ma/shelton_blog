@@ -1,0 +1,84 @@
+---
+title: "Tailwind CSS 速览"
+date: 2024-09-06 11:06:11
+tags: ["Tailwind CSS"]
+draft: false
+summary: 简要介绍 Tailwind CSS，涵盖了常用的实用类，如背景色、文本色、间距和对齐方式。它还讲解了响应式设计、伪类以及如何通过 tailwind.config.js 进行自定义。Tailwind CSS 使得现代响应式网页设计变得高效且灵活。
+images: []
+authors: ['default']
+---
+
+## Tailwind CSS 速览
+
+1. 常用
+
+    |功能       |类名示例|
+    |:--       |:--|
+    |背景颜色   |bg-red-500|
+    |文本颜色   |text-blue-700|
+    |外边距     |m-4、mt-2|
+    |内边距     |p-4、px-2|
+    |对齐方式   |text-center、flex justify-end|
+    |字体粗细   |font-bold、font-light|
+    |阴影效果   |shadow-lg|
+    |宽度      |w-1/2, w-full|
+    |显示隐藏   |block、hidden|
+
+    ```ts
+    <div class="bg-blue-500 text-white">蓝色背景，白色文本</div>
+    <div class="text-red-500">红色文本</div>
+    // 尺寸 (Spacing)
+    // Margin: m-{size}
+    // Padding: p-{size}
+    <div class="m-4 p-2">边距和内边距</div>
+    <div class="mt-2 mb-4 ml-6 mr-8">单独设置边距</div>
+
+    // 布局 (Layout)
+    // Flexbox:
+    <div class="flex justify-center items-center">居中对齐</div>
+    // Grid:
+    <div class="grid grid-cols-3 gap-4">三列布局</div>
+
+    // 边框 (Borders)
+    <div class="border border-gray-300 rounded-lg">带边框的元素</div>
+
+    // 圆角 (Border Radius)
+    <div class="rounded-full">圆形元素</div>
+    <div class="rounded-lg">大圆角</div>
+
+    // 字体 (Typography)
+    <div class="text-xl font-bold">加粗大字体</div>
+    <div class="text-center">居中文本</div>
+
+    // 阴影 (Shadows)
+    <div class="shadow-md">中等阴影</div>
+    ```
+
+2. 响应式设计
+    使用前缀指定断点`<div class="text-sm md:text-lg">小屏幕小字体，大屏幕大字体</div>`：
+    - sm: (最小宽度 640px)
+    - md: (最小宽度 768px)
+    - lg: (最小宽度 1024px)
+    - xl: (最小宽度 1280px)
+
+3. 伪类
+
+    ```ts
+    <div class="hover:bg-blue-600">悬停时改变背景色</div>
+    <input class="focus:ring-2 focus:ring-blue-500" />
+    ```
+
+4. 自定义
+
+    ```ts
+    // tailwind.config.js
+    module.exports = {
+      theme: {
+        extend: {
+          colors: {
+            customColor: '#ff5733',
+          },
+        },
+      },
+    }
+    ```
