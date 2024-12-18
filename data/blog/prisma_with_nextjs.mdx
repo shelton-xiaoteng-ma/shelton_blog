@@ -1,0 +1,90 @@
+---
+title: Best Practices for Instantiating Prisma Client with Next.js
+date: 2024-08-18 11:02:40
+tags: ["prisma", "Next.js"]
+draft: false
+summary: Correctly instantiating Prisma Client with Next.js to avoid unnecessary database connections.
+images: []
+authors: ['default']
+---
+
+## Prisma Config
+
+### 1. Install Prisma and Dependencies
+
+To set up Prisma in your project, start by installing the necessary dependencies:
+
+```bash
+pnpm install -D prisma
+pnpm install @prisma/client
+
+npx prisma init
+```
+
+This will install Prisma and generate the necessary configuration files, including prisma/schema.prisma and a .env file.
+
+### 2. Add Environment Variables
+
+In your .env file, add the DATABASE_URL environment variable to point to your database:
+
+```json
+// .env
+DATABASE_URL=
+```
+
+### 3. Config datasource in `prisma/schema.prisma`
+
+```ts
+// /prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+### 4. Create a Singleton Prisma Client
+
+To avoid creating multiple instances of the Prisma Client, you should use a singleton pattern. This ensures that Prisma is instantiated only once, even during hot-reloading in development:
+
+```ts
+// src/lib/prismadb.ts
+import { PrismaClient } from "@prisma/client";
+
+const prismaClientSingleton = () => {
+  return new PrismaClient();
+};
+
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+
+export default prisma;
+
+if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
+```
+
+### 5. Add a Model
+
+```ts
+// prisma/schema.prisma
+
+model SomeModel {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
+
+### 6. Sync the Schema with the Database
+
+```shell
+npx prisma db push
+```

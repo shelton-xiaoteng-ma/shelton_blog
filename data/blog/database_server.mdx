@@ -1,0 +1,155 @@
+---
+title: 10 Free Cloud Databases You Should Consider
+date: 2024-06-18 11:17:54
+tags: ['free-tier', 'cloud databases', 'SQL', 'NoSQL', 'Supabase', 'AWS', 'PlanetScale']
+draft: false
+summary: A list of 10 cloud databases with free-tier options, including SQL and NoSQL solutions, ideal for small projects or scaling.
+images: []
+authors: ['default']
+---
+
+There are several excellent options that offer robust free-tier plans, great documentation, and scalability. Here’s a list of some popular free-tier database providers:
+
+### 1. PlanetScale
+
+- **Type**: Distributed SQL (MySQL-compatible)
+- **Free Tier**: Up to 5 databases and 1 branch.
+- **Key Features**:
+  - Horizontal scalability
+  - Serverless architecture
+  - MySQL compatibility (with Vitess under the hood)
+  - Zero-downtime schema changes
+- **Good For**: Projects that need high availability and scalability with a MySQL-compatible database.
+- **Website**: [PlanetScale](https://planetscale.com)
+
+### 2. Neon
+
+- **Type**: Serverless PostgreSQL
+- **Free Tier**: 1 GB of storage and 100,000 reads/writes per month.
+- **Key Features**:
+  - Serverless, auto-scaling PostgreSQL database
+  - Built-in data replication
+  - Real-time analytics support
+  - Automatic branching and versioning
+- **Good For**: Projects that need serverless PostgreSQL with auto-scaling and branching features.
+- **Website**: [Neon](https://neon.tech)
+
+### 3. Supabase
+
+- **Type**: PostgreSQL with integrated backend services (Real-time, Auth, Storage, etc.)
+- **Free Tier**:
+  - 500MB database storage
+  - 1GB file storage
+  - 2 million monthly requests
+  - Unlimited authentication and real-time subscriptions
+- **Key Features**:
+  - Fully managed PostgreSQL with real-time support
+  - Integrated RESTful and GraphQL APIs
+  - Auth service, file storage, and more
+- **Good For**: Projects requiring a full backend solution with authentication, database, and real-time capabilities.
+- **Website**: [Supabase](https://supabase.io)
+
+### 4. Railway
+
+- **Type**: General-purpose, managed database (supports PostgreSQL, MySQL, Redis, etc.)
+- **Free Tier**:
+  - 1 GB database storage
+  - 1,000 hours/month compute time
+  - Supports PostgreSQL, MySQL, and Redis
+- **Key Features**:
+  - Simple deployment for multiple database types
+  - Easy-to-use UI and integrations with various frameworks and services
+  - Automatic deployment with GitHub integration
+- **Good For**: Quick projects, development environments, and full-stack applications.
+- **Website**: [Railway](https://railway.app)
+
+### 5. Fly.io
+
+- **Type**: PostgreSQL, Redis, and MySQL (and more) hosting in edge locations
+- **Free Tier**:
+  - 3 apps per account
+  - 1 GB storage per app (Persistent Volume)
+  - 1 CPU core per app
+- **Key Features**:
+  - Can run databases near your users (edge locations)
+  - Offers both SQL (PostgreSQL, MySQL) and NoSQL (Redis)
+  - Global scalability and minimal latency
+- **Good For**: Running applications with low latency and global distribution requirements.
+- **Website**: [Fly.io](https://fly.io)
+
+### 6. ElephantSQL
+
+- **Type**: Managed PostgreSQL
+- **Free Tier**:
+  - 20 MB storage
+  - 5 concurrent connections
+- **Key Features**:
+  - Fully managed PostgreSQL instances
+  - Easy-to-use interface
+  - No setup or maintenance required
+- **Good For**: Small-scale projects or development environments.
+- **Website**: [ElephantSQL](https://www.elephantsql.com)
+
+### 7. MongoDB Atlas
+
+- **Type**: Managed MongoDB (NoSQL)
+- **Free Tier**:
+  - 512 MB storage
+  - 100 max concurrent connections
+  - 100 max reads per second
+- **Key Features**:
+  - Fully managed MongoDB service
+  - Auto-scaling and real-time data
+  - Powerful aggregation framework
+- **Good For**: NoSQL projects requiring flexible schema and horizontal scaling.
+- **Website**: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+
+### 8. CockroachDB
+
+- **Type**: Distributed SQL (PostgreSQL compatible)
+- **Free Tier**:
+  - 5GB storage
+  - 1 million SQL queries/month
+  - 1 Node (multi-region deployments possible)
+- **Key Features**:
+  - High availability, distributed architecture
+  - ACID-compliant
+  - PostgreSQL compatibility
+- **Good For**: Projects requiring high availability and automatic scaling with SQL compatibility.
+- **Website**: [CockroachDB](https://www.cockroachlabs.com)
+
+### 9. Google Cloud Firestore
+
+- **Type**: NoSQL Document Database
+- **Free Tier**:
+  - 1 GB storage
+  - 50,000 reads per day
+  - 20,000 writes per day
+  - 20,000 deletes per day
+- **Key Features**:
+  - Real-time updates
+  - Offline support for web and mobile apps
+  - Global replication
+- **Good For**: Real-time applications needing NoSQL storage with high availability and global distribution.
+- **Website**: [Google Firestore](https://firebase.google.com/products/firestore)
+
+### 10. AWS Free Tier (RDS and DynamoDB)
+
+- **Type**: Managed SQL and NoSQL databases
+- **Free Tier**:
+  - RDS: 750 hours/month (MySQL, PostgreSQL, MariaDB, Oracle, SQL Server)
+  - DynamoDB: 25GB of storage, 25 read and 25 write capacity units per month
+- **Key Features**:
+  - Fully managed databases with auto-scaling
+  - RDS supports MySQL, PostgreSQL, Oracle, and SQL Server
+  - DynamoDB is ideal for fast NoSQL workloads
+- **Good For**: AWS ecosystem projects needing SQL or NoSQL solutions.
+- **Website**: [AWS Free Tier](https://aws.amazon.com/free)
+
+## Conclusion
+
+- **For SQL**: If you’re looking for serverless and highly scalable SQL databases, **PlanetScale** (MySQL) and **Neon** (PostgreSQL) are great choices. **Supabase** also offers a fully managed PostgreSQL solution with real-time capabilities.
+- **For NoSQL**: If you prefer a NoSQL solution, **MongoDB Atlas**, **Google Firestore**, and **Railway** are all excellent choices with generous free tiers.
+- **For edge-focused applications**: **Fly.io** provides edge deployment with PostgreSQL, Redis, and MySQL, which is ideal if you need low-latency access from different geographical locations.
+
+Choose the one that best fits your project’s requirements for ease of use, scalability, and the type of data you need to store.
