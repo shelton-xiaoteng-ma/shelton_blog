@@ -1,0 +1,76 @@
+---
+title: Deploy Prisma Client in Vercel Edge Runtime with Neon Serverless Driver
+date: 2024-12-18 17:28:11
+tags: ["prisma", 'Neon', 'vercel']
+draft: false
+summary: Deploy an app that uses Prisma Client for talking to a database in Vercel Edge Middleware or a Vercel Function deployed to the Vercel Edge Runtime.
+images: []
+authors: ['default']
+---
+
+## Error
+
+When using Prisma Client with Hono or Next.js, deployed on Vercel Edge and using Edge Runtime, you may encounter the following error:
+
+```error
+[Error: PrismaClient is not configured to run in Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js (Pages Router) Edge API Routes, Next.js (App Router) Edge Route Handlers or Next.js Middleware).]
+```
+
+## What Is Happening?
+
+Prisma Client is not compatible with Edge Runtime environments. Prisma Client relies on native Node.js modules that are not compatible with edge runtimes like Vercel Edge Functions, Next.js Edge API Routes, or Middleware.
+
+To resolve this, you can use the **Neon serverless driver**, which is a low-latency PostgreSQL driver for JavaScript and TypeScript. It allows you to query data from serverless and edge environments over HTTP or WebSockets instead of TCP, making it compatible with edge runtimes.
+
+## Serverless Database and Prisma ORM
+
+[Doc: Neon serverless driver](https://neon.tech/docs/serverless/serverless-driver)
+
+### 1. Configure `driverAdapters`
+
+```ts
+// prisma/schema.prisma
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+```
+
+### 2. Install Dependencies
+
+```shell
+pnpm install @prisma/adapter-neon @neondatabase/serverless ws
+pnpm install --save-dev @types/ws
+```
+
+### 3. Create Prisma Client
+
+```ts
+import { Pool, neonConfig } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaClient } from '@prisma/client'
+import ws from 'ws'
+
+neonConfig.webSocketConstructor = ws
+const connectionString = `${process.env.DATABASE_URL}`
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaNeon(pool)
+export const prisma = new PrismaClient({ adapter })
+```
+
+### 4. Use Prisma as usual
+
+After setting up the Prisma client with the Neon serverless adapter, you can continue using Prisma as you normally would to interact with your Postgres database in serverless environments.
+
+```ts
+const fetchData = async () => {
+  const result = await prisma.someModel.findMany()
+  console.log(result)
+}
+```
