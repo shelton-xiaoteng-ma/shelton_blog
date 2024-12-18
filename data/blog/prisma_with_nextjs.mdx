@@ -86,5 +86,15 @@ model SomeModel {
 ### 6. Sync the Schema with the Database
 
 ```shell
+# when you modify prisma schema
+npx prisma generate
+
 npx prisma db push
+```
+
+### 7. Start Prisma Studio
+
+```shell
+# Prisma Studio is up on http://localhost:5555
+npx prisma studio
 ```
