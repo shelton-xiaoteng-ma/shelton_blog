@@ -1,0 +1,104 @@
+---
+title: 'Browser Automation: Pyppeteer and Undetected ChromeDriver'
+date: 2023-05-08 17:56:31
+tags: ['Web Scraping', 'Cloudflare', 'undetected chromedriver', 'Browser Automation']
+draft: false
+summary: Set up and use Pyppeteer and Undetected ChromeDriver for bypassing anti-scraping mechanisms like Cloudflare.
+images: []
+authors: ['default']
+---
+
+## Pyppeteer
+
+### 1. Environment Setup: Install Chromium
+
+```bash
+# Download blocked? Copy chromium_588429.zip from /data
+# Extract it to the directory: /home/{{user}}/.local/share/pyppeteer/local-chromium/588429/, replace {{user}} with your username
+unzip chromium_588429.zip -d /home/{{user}}/.local/share/pyppeteer/local-chromium/588429/
+
+# Verify installation
+import pyppeteer
+pyppeteer.executablePath()
+# Output: '/home/{{user}}/.local/share/pyppeteer/local-chromium/588429/chrome-linux/chrome'
+```
+
+### 2. Configuration
+
+1.  **Headless Detection**: [Headless Chrome detection and anti-detection](https://webscraping.pro/headless-chrome-detection-and-anti-detection)
+2.  Additional Resources::
+    - [antoinevastel](https://antoinevastel.com/bots/)
+    - [Install Chromium from Source](https://blog.csdn.net/qq_39377418/article/details/106984835)
+
+## Undetected ChromeDriver
+
+### 1. Environment Setup: Custom Environment
+
+```shell
+# 下载指定版本的chromedriver
+wget https://chromedriver.storage.googleapis.com/112.0.5615.49/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+# chromedriver无需指定目录, 默认使用
+~/.local/share/undetected_chromedriver/chromedriver
+
+# 下载浏览器
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+# dpkg -i google-chrome-stable_current_amd64.deb 将会安装在/usr/bin/google-chromes
+# 解压在自定义目录
+dpkg -x google-chrome-stable_current_amd64.deb ~/.local/share/undetected_chromedriver/
+
+# chrome path
+~/.local/share/undetected_chromedriver/opt/google/chrome/google-chrome
+
+# 检查版本
+~/.local/share/undetected_chromedriver/opt/google/chrome/google-chrome --version
+~/.local/share/undetected_chromedriver/chromedriver --version
+```
+
+### 2. Code Example
+
+```python
+import undetected_chromedriver as uc
+from selenium import webdriver
+
+options = webdriver.ChromeOptions()
+options.add_argument('--no-sandbox')
+options.add_argument('--proxy-server={}'.format(get_jp_intranet_proxies()))
+options.add_argument('--ignore-ssl-errors=true')
+browser_path='~/.local/share/undetected_chromedriver/opt/google/chrome/google-chrome'
+driver = uc.Chrome(options=options, browser_executable_path=browser_path, headless=True)
+driver.get(url)
+```
+
+### 3. Error Handling
+
+1. Issue: Chromedriver Deletion
+
+   - Symptom: `[Errno 2] No such file or directory: '~/.local/share/undetected_chromedriver/undetected/chromedriver' -> '~/.local/share/undetected_chromedriver/undetected_chromedriver'`
+   - Cause: uc.Chrome() downloads the latest chromedriver and deletes it during driver.quit() (see undetected_chromedriver/patcher.py `__del__`). Multi-process usage may cause conflicts.
+   - Solution, Use a fixed driver_executable_path to avoid dynamic downloads.
+
+     - Download a Matching Chromedriver:
+
+       ```shell
+       cd ~/.local/share/undetected_chromedriver
+        wget https://chromedriver.storage.googleapis.com/112.0.5615.49/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip
+        # Keep versioned files for coexistence
+        cp chromedriver chromedriver_112
+       ```
+
+     - Specify Driver and Browser Paths:
+
+       ```python
+       browser_path='~/.local/share/undetected_chromedriver/opt/google/chrome/google-chrome'
+       driver_path='~/.local/share/undetected_chromedriver/chromedriver_112'
+       driver = uc.Chrome(options=options, driver_executable_path=driver_path, browser_executable_path=browser_path, headless=True, version_main=112)
+       driver.get(url)
+       ```
+
+   - [discussions: Multi-threaded use of UC is impossible](https://github.com/ultrafunkamsterdam/undetected-chromedriver/discussions/1063)
+
+### [What Is Undetected ChromeDriver?](https://www.zenrows.com/blog/undetected-chromedriver#what-is)
+
+Key Mechanism: The undetected_chromedriver/patcher.py file uses the self.patch_exe() method for patching.

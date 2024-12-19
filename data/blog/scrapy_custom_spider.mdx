@@ -1,7 +1,7 @@
 ---
 title: Custom Scrapy Spider
 date: 2023-05-19 14:59:08
-tags: ['scrapy']
+tags: ['scrapy', 'Web Scraping']
 draft: false
 summary: Use the custom MySpider class that provide unified log configuration and set_stats, enabling more convenient and enriched custom metrics.
 images: []
@@ -59,7 +59,7 @@ class MySpider(scrapy.Spider):
             self.set_stats('crawler_batch_id', datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d'))
 
     def inc_stats(self, name, value=1):
-        """Custom metric for the spider added to `corestats`.  
+        """Custom metric for the spider added to `corestats`.
            Example: `self.inc_stats('success_cnt', 1)`
 
         Args:

@@ -1,0 +1,63 @@
+---
+title: By Pass Cloudflare
+date: 2023-05-09 17:56:31
+tags: ['Web Scraping', 'Cloudflare', 'undetected chromedriver', 'curl_cffi']
+draft: false
+summary: 越来越多网站接入Cloudflare，反爬终于实现了标准化，并得到很好的复用。根据Cloudflare反爬思路，大概分为两种：一是检测浏览器环境，要求执行JS验证环境后放行，另一类是验证TLS指纹和HTTP/2指纹。
+images: []
+authors: ['default']
+---
+
+## 验证浏览器环境
+
+### 代表网站：Indeed US
+
+- 目标URL: [Indeed Jobs](https://www.indeed.com/jobs?q=&l=San+Antonio%2C+TX&from=searchOnHP&vjk=b40c51521578cf9a)
+
+直接使用 `requests` 请求会返回 `403` 错误，提示信息如下：
+
+```
+This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.
+```
+
+可以考虑使用模拟浏览器的方式来抓取数据。这里使用 [undetected chromedriver](https://github.com/ultrafunkamsterdam/undetected-chromedriver.git) 可以绕过 Cloudflare 的检查。
+
+> **[undetected chromedriver的原理和使用参考](/blog/browser_automation)**
+
+---
+
+## 验证 TLS 指纹和 HTTP/2 指纹
+
+### 代表网站：Marinetraffic
+
+- 目标请求：[Marinetraffic 数据](https://www.marinetraffic.com/getData/get_data_json_4/z:12/X:351/Y:819/station:0)
+
+### 现象
+
+在引入 Cloudflare 后，直接请求返回 `403` 错误。
+
+即使提供了完整的 cookie 和 headers，依然无法请求成功。奇怪的是，在 Charles 中同样的请求可以正常返回，但通过 `curl` 或控制台发出的请求却失败。抓包对比没有发现明显区别。
+
+### 解决方案
+
+使用 [curl_cffi](https://github.com/lexiforest/curl_cffi) 库进行请求时，指定 `impersonate` 参数来模拟浏览器的行为，避免被 Cloudflare 检测到。
+
+```python
+from curl_cffi import requests
+
+# Notice the impersonate parameter
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome")
+
+print(r.json())
+
+# To pin a specific version, use version numbers together.
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome124")
+
+# To impersonate other than browsers, bring your own ja3/akamai strings
+# See examples directory for details.
+r = requests.get("https://tls.browserleaks.com/json", ja3=..., akamai=...)
+
+# http/socks proxies are supported
+proxies = {"https": "http://localhost:3128"}
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome", proxies=proxies)
+```

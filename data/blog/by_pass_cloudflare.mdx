@@ -1,0 +1,62 @@
+---
+title: Bypass Cloudflare
+date: 2023-05-09 17:56:31
+tags: ['Web Scraping', 'Cloudflare', 'undetected chromedriver', 'curl_cffi']
+draft: false
+summary: More and more websites are integrating Cloudflare, standardizing anti-scraping mechanisms and enhancing reusability. Cloudflare's anti-scraping approach can generally be divided into two categories: browser environment validation via JavaScript execution and TLS/HTTP/2 fingerprint verification.
+images: []
+authors: ['default']
+---
+
+## Browser Environment Validation
+
+### Example Website: Indeed US
+
+- Target URL: [Indeed Jobs](https://www.indeed.com/jobs?q=&l=San+Antonio%2C+TX&from=searchOnHP&vjk=b40c51521578cf9a)
+
+Using `requests` to fetch data from this URL directly will result in a `403` error with the following message:
+
+`This website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.`
+
+To retrieve data successfully, consider simulating a browser environment. Using [undetected chromedriver](https://github.com/ultrafunkamsterdam/undetected-chromedriver.git) can bypass Cloudflare's checks effectively.
+
+> **[Reference: undetected chromedriver usage and principles](/blog/browser_automation)**
+
+---
+
+## TLS and HTTP/2 Fingerprint Validation
+
+### Example Website: Marinetraffic
+
+- Target URL: [Marinetraffic Data](https://www.marinetraffic.com/getData/get_data_json_4/z:12/X:351/Y:819/station:0)
+
+### Observations
+
+After Cloudflare was introduced, requests to this endpoint started returning `403` errors.
+
+Even when providing complete cookies and headers, the requests failed. Interestingly, the same request worked in the Charles proxy tool but failed when sent via `curl` or a terminal. Packet capture comparisons revealed no significant differences.
+
+### Solution
+
+Use the [curl_cffi](https://github.com/lexiforest/curl_cffi) library and specify the `impersonate` parameter to simulate browser behavior, avoiding detection by Cloudflare.
+
+```python
+from curl_cffi import requests
+
+# Use the impersonate parameter
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome")
+
+print(r.json())
+
+# Pin a specific browser version
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome124")
+
+# Provide custom JA3/Akamai fingerprints for non-browser impersonation
+# See examples directory for details.
+r = requests.get("https://tls.browserleaks.com/json", ja3=..., akamai=...)
+
+# HTTP/SOCKS proxies are supported
+proxies = {"https": "http://localhost:3128"}
+r = requests.get("https://tools.scrapfly.io/api/fp/ja3", impersonate="chrome", proxies=proxies)
+
+```
