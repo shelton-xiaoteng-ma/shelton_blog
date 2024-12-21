@@ -3,14 +3,80 @@ title: 'Redux: State Management in React'
 date: 2024-10-12 16:00:00
 tags: ['Redux', 'React']
 draft: false
-summary: 'A simple guide to using Redux for state management in React.'
+summary: 'In Redux, state is handled globally and allows you to change the state from anywhere in the application'
 images: []
 authors: ['default']
 ---
 
-Redux is one of the most popular libraries for state management in React applications. It helps manage the state in a predictable way, ensuring that the data flows in a consistent manner across the application. This guide will walk you through how to set up Redux in a React app.
+## 1. What is Redux?
 
-## 1. Install Redux and React-Redux
+Redux is one of the most popular libraries for state management in React applications. It helps manage the state in a predictable way, ensuring that the data flows in a consistent manner across the application.
+
+In Redux, state is handled globally and allows you to change the state from anywhere in the application instead of creating new objects every time state is changed.
+
+## 2. Key Concepts in Redux
+
+The lifecycle in Redux: `Action` → `Dispatches Action` → `Reducers Update State` → `Re-renders Components` → `Components Update Props` → `Display Updated UI`
+
+1. **Action**  
+
+    An *Action* describes what happens in your application. It’s an object that holds the information of the user’s event, and it communicates a change in the state. Actions are dispatched from any part of your app and are received by the store. They are plain JavaScript objects with a `type` property, which describes the action that occurred, but not how the state will change.
+
+2. **Store**  
+
+    The *Store* is the single, authoritative source of state in your application. There is only one store per Redux application, and it handles both dispatching actions and receiving updates to state.
+
+3. **Reducers**  
+
+    *Reducers* are pure functions responsible for specifying how the state changes in response to an action. When an action is dispatched, the store sends the action to the appropriate reducer. The reducer uses the current state and action to return a new state.
+
+## 3. Async with Redux
+
+```js
+import React, { useReducer } from 'react';
+import ReactDOM from 'react-dom';
+
+const initialState = {
+  first_name: "John",
+  last_name: "Smith",
+  department: "operations"
+};
+
+function myReducer(state, action) {
+  switch (action.type) {
+    case 'changeDepartmentToIT':
+      return {
+        ...state,
+        department: 'IT'
+      };
+    case 'changeDepartmentToSecurity':
+      return {
+        ...state,
+        department: 'Security'
+      };
+    default:
+      throw new Error();
+  }
+}
+
+function ChangeUserDepartment() {
+  const [state, dispatch] = useReducer(myReducer, initialState);
+  
+  return (
+    <div>
+      <p>First Name: {state.first_name}</p>
+      <p>Last Name: {state.last_name}</p>
+      <p>User Department: {state.department}</p>
+      <button onClick={() => dispatch({type: 'changeDepartmentToIT'})}>Change User Department to IT</button>
+      <button onClick={() => dispatch({type: 'changeDepartmentToSecurity'})}>Change User Department to Security</button>
+    </div>
+  );
+}
+```
+
+## 4. Using Redux in Your Application
+
+### 1. Install Redux and React-Redux
 
 To start using Redux, you'll need to install both `redux` and `react-redux` (which binds Redux to React components):
 
@@ -18,7 +84,7 @@ To start using Redux, you'll need to install both `redux` and `react-redux` (whi
 pnpm install redux react-redux
 ```
 
-## 2. Define Your Redux Store
+### 2. Define Your Redux Store
 
 1. Create Action Types
 
@@ -35,11 +101,11 @@ pnpm install redux react-redux
     import { INCREMENT, DECREMENT } from './actionTypes';
 
     export const increment = () => ({
-    type: INCREMENT,
+      type: INCREMENT,
     });
 
     export const decrement = () => ({
-    type: DECREMENT,
+      type: DECREMENT,
     });
     ```
 
@@ -52,18 +118,18 @@ pnpm install redux react-redux
     import { INCREMENT, DECREMENT } from './actionTypes';
 
     const initialState = {
-    count: 0,
+      count: 0,
     };
 
     export const counterReducer = (state = initialState, action: any) => {
-    switch (action.type) {
+      switch (action.type) {
         case INCREMENT:
-        return { ...state, count: state.count + 1 };
+          return { ...state, count: state.count + 1 };
         case DECREMENT:
-        return { ...state, count: state.count - 1 };
+          return { ...state, count: state.count - 1 };
         default:
-        return state;
-    }
+          return state;
+      }
     };
     ```
 
@@ -77,11 +143,11 @@ pnpm install redux react-redux
     import { counterReducer } from './counterReducer';
 
     export const rootReducer = combineReducers({
-    counter: counterReducer,
+      counter: counterReducer,
     });
     ```
 
-## 3. Create and Configure the Store
+### 3. Create and Configure the Store
 
 Now, let’s create the Redux store and pass in the rootReducer:
 
@@ -93,7 +159,7 @@ import { rootReducer } from './rootReducer';
 export const store = createStore(rootReducer);
 ```
 
-## 4. Provide the Store to Your Application
+### 4. Provide the Store to Your Application
 
 In order to use Redux in your React components, you need to wrap your application with the Provider from react-redux. This makes the Redux store available to all components in the app.
 
@@ -113,7 +179,7 @@ ReactDOM.render(
 );
 ```
 
-## 5. Connect Redux State and Actions to Your Components
+### 5. Connect Redux State and Actions to Your Components
 
 Now, let’s connect the Redux state and actions to a React component. For example, a Counter component:
 

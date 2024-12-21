@@ -1,0 +1,55 @@
+---
+title: React Foundations
+date: 2024-02-28 14:28:11
+tags: ['React']
+draft: false
+summary: React Foundations
+images: []
+authors: ['default']
+---
+
+## 1. Libraries
+
+- **react**: The core React library.
+- **react-dom**: Provides DOM-specific methods that allow React to interact with the browser’s DOM.
+
+## 2. JSX & Babel
+
+**JSX** is a syntax extension for JavaScript that allows you to describe your UI in a familiar HTML-like syntax. The nice thing about JSX is that apart from following three JSX rules, you don't need to learn any new symbols or syntax outside of HTML and JavaScript.
+
+But browsers don't understand JSX out of the box, so you'll need a JavaScript compiler, such as a **Babel**, to transform your JSX code into regular JavaScript.
+
+Inform Babel what code to transform by changing the `script` type to `type=text/jsx`
+
+```html
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/jsx">
+    const domNode = document.getElementById('app');
+    const root = ReactDOM.createRoot(domNode);
+    root.render(<h1>Develop. Preview. Ship.</h1>);
+</script>
+```
+
+## 3. Core React Concepts: Components, Props, and State
+
+### Components
+
+React applications are built by breaking the UI into smaller, reusable building blocks called **components**. Components can be as simple as a button or as complex as an entire page layout. Each component encapsulates its logic, rendering, and behavior.
+
+### Props
+
+**Props** (short for properties) allow data to be passed from one component to another. They enable communication between components in a unidirectional flow, where a parent component passes data down to its children.
+
+### States
+
+**State** is used to store data that can change over time.`const [likes, setLikes] = React.useState(0);`
+
+### Hooks
+
+React provides functions called **hooks** to allow developers to add logic to components. The useState hook is one of the most common hooks used to manage state in functional components. React offers several other hooks, such as useEffect, useContext, and more.
+
+## 4. State vs Props
+
+- Any changes in the state data cause the re-rendering of the component to reflect the change.
+- Components can create and manage their own data with state, whereas they receive data from outside with props.
+- You can modify state with the setState() method, whereas props can only be passed from parent component to child in a unidirectional flow.
