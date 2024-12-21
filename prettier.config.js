@@ -7,4 +7,14 @@ module.exports = {
   trailingComma: 'es5',
   bracketSpacing: true,
   plugins: ['prettier-plugin-tailwindcss'],
+  overrides: [
+    {
+      files: ['*.md', '*.mdx'],
+      options: {
+        parser: 'markdown',
+        tabWidth: 4,
+        proseWrap: 'preserve',
+      },
+    },
+  ],
 }
