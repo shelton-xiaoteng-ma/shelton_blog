@@ -1,0 +1,51 @@
+---
+title: 'Zustand: State Management in React'
+date: 2024-12-21 15:51:03
+tags: ['Zustand', 'React']
+draft: false
+summary: 'A simple guide to using Zustand for state management in React.'
+images: []
+authors: ['default']
+---
+
+Zustand is a lightweight and easy-to-use state management library for React. In this guide, we'll walk through setting up Zustand for managing state in a React app.
+
+## 1. Install the package
+
+To get started, you’ll first need to install Zustand:
+
+    ```shell
+    pnpm install zustand
+    ```
+
+## 2. Create a state store
+
+Next, create a state store using Zustand’s create function.
+
+    ```ts
+    import { create } from "zustand";
+
+    type SubscriptionModalState = {
+      isOpen: boolean;
+      onOpen: () => void;
+      onClose: () => void;
+    };
+
+    export const useSubscriptionModal = create<SubscriptionModalState>((set) => ({
+      isOpen: false,
+      onOpen: () => set({ isOpen: true }),
+      onClose: () => set({ isOpen: false }),
+    }));
+    ```
+
+### 3. Bind the state to your components
+
+Finally, use the state store in your components. Here’s how you can connect the modal state to a Dialog component:
+
+    ```ts
+    const { isOpen, onClose, onOpen } = useStore();
+
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+    </Dialog>
+    ```
