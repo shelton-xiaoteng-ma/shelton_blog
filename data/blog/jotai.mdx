@@ -1,0 +1,72 @@
+---
+title: 'State Management In React: Jotai'
+date: 2024-10-20 20:54:20
+tags: ['Jotai', 'React']
+draft: false
+summary: 'State management for React: Jotai'
+images: []
+authors: ['default']
+---
+
+## Jotai
+
+1. install package `pnpm install jotai`
+2. Create atoms
+
+    ```ts
+    import { atom } from 'jotai'
+    const countAtom = atom(0)
+
+    const countryAtom = atom('Japan')
+
+    const citiesAtom = atom(['Tokyo', 'Kyoto', 'Osaka'])
+    ```
+
+3. Use the atom in your components
+
+    ```ts
+    import { useAtom } from 'jotai'
+
+    const [count, setCount] = useAtom(countAtom)
+    <button onClick={() => setCount((c) => c + 1)}>one up</button>
+
+    const [cities, setCities] = useAtom(citiesAtom)
+    setAnime((cities) => [
+            ...cities,
+            "new city"
+          ])
+    ```
+
+4. JotaiProvider - Server-side rendering
+
+    > If server-side rendering with a framework such as Next.js or Waku, make sure to add a Jotai Provider component at the root.
+
+    ```ts
+    // src/components/jotai-provider.tsx
+    "use client";
+
+    import { Provider } from "jotai";
+
+    interface JotaiProviderProps {
+      children: React.ReactNode;
+    }
+
+    export const JotaiProvider = ({ children }: JotaiProviderProps) => {
+      return <Provider>{children}</Provider>;
+    };
+
+    // src/app/layout.tsx
+    ...
+    return (
+    <ConvexAuthNextjsServerProvider>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} >
+        <JotaiProvider>
+        {children}
+        </JotaiProvider>
+      </body>
+    </html>
+    </ConvexAuthNextjsServerProvider>
+    );
+    ...
+    ```
