@@ -1,0 +1,143 @@
+---
+title: 'Redux: State Management in React'
+date: 2024-10-12 16:00:00
+tags: ['Redux', 'React']
+draft: false
+summary: 'A simple guide to using Redux for state management in React.'
+images: []
+authors: ['default']
+---
+
+Redux is one of the most popular libraries for state management in React applications. It helps manage the state in a predictable way, ensuring that the data flows in a consistent manner across the application. This guide will walk you through how to set up Redux in a React app.
+
+## 1. Install Redux and React-Redux
+
+To start using Redux, you'll need to install both `redux` and `react-redux` (which binds Redux to React components):
+
+```shell
+pnpm install redux react-redux
+```
+
+## 2. Define Your Redux Store
+
+1. Create Action Types
+
+    ```ts
+    // actionTypes.ts
+    export const INCREMENT = 'INCREMENT';
+    export const DECREMENT = 'DECREMENT';
+    ```
+
+2. Create Actions
+
+    ```ts
+    // actions.ts
+    import { INCREMENT, DECREMENT } from './actionTypes';
+
+    export const increment = () => ({
+    type: INCREMENT,
+    });
+
+    export const decrement = () => ({
+    type: DECREMENT,
+    });
+    ```
+
+3. Create Reducers
+
+    Reducers define how the state should change in response to actions. Here, we’ll have a simple reducer for the counter state:
+
+    ```ts
+    // counterReducer.ts
+    import { INCREMENT, DECREMENT } from './actionTypes';
+
+    const initialState = {
+    count: 0,
+    };
+
+    export const counterReducer = (state = initialState, action: any) => {
+    switch (action.type) {
+        case INCREMENT:
+        return { ...state, count: state.count + 1 };
+        case DECREMENT:
+        return { ...state, count: state.count - 1 };
+        default:
+        return state;
+    }
+    };
+    ```
+
+4. Combine Reducers
+
+    If your application has multiple reducers, you can combine them into one using combineReducers:
+
+    ```ts
+    // rootReducer.ts
+    import { combineReducers } from 'redux';
+    import { counterReducer } from './counterReducer';
+
+    export const rootReducer = combineReducers({
+    counter: counterReducer,
+    });
+    ```
+
+## 3. Create and Configure the Store
+
+Now, let’s create the Redux store and pass in the rootReducer:
+
+```ts
+// store.ts
+import { createStore } from 'redux';
+import { rootReducer } from './rootReducer';
+
+export const store = createStore(rootReducer);
+```
+
+## 4. Provide the Store to Your Application
+
+In order to use Redux in your React components, you need to wrap your application with the Provider from react-redux. This makes the Redux store available to all components in the app.
+
+```ts
+// index.tsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import App from './App';
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);
+```
+
+## 5. Connect Redux State and Actions to Your Components
+
+Now, let’s connect the Redux state and actions to a React component. For example, a Counter component:
+
+```ts
+// Counter.tsx
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { increment, decrement } from './actions';
+
+export const Counter = () => {
+  const dispatch = useDispatch();
+  const count = useSelector((state: any) => state.counter.count);
+
+  return (
+    <div>
+      <h1>Counter: {count}</h1>
+      <button onClick={() => dispatch(increment())}>Increment</button>
+      <button onClick={() => dispatch(decrement())}>Decrement</button>
+    </div>
+  );
+};
+```
+
+- In this component:
+
+  - We use useSelector to access the count state from the Redux store.
+  - We use useDispatch to dispatch actions when the user clicks the buttons.
