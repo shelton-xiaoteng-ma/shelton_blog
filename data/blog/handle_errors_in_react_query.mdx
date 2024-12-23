@@ -1,0 +1,87 @@
+---
+title: "Handling API Errors Gracefully in React Query"
+date: 2024-12-23 15:11:41
+tags: ["React Query"]
+draft: false
+summary: "Show how to create a custom API error handler and integrate it with React Query for improved error handling in your Next.js applications."
+images: []
+authors: ['default']
+---
+
+## 1. Define a Custom `APIError`
+
+Create a custom error class to encapsulate additional information about API errors, such as the response object:
+
+```ts
+// src/lib/errors.ts
+export class APIError extends Error {
+  response: Response;
+
+  constructor(message: string, response: Response) {
+    super(message);
+    this.response = response;
+  }
+}
+```
+
+## 2. Use APIError in React Query
+
+Integrate the APIError class in your useMutation or useQuery hooks for better error handling.
+
+```ts
+// src/features/conversation/api/use-send-message.tsx
+import { APIError } from "@/lib/errors";
+
+import { client } from "@/lib/hono";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+export const useSendMessage = () => {
+  const mutation = useMutation({
+    mutationFn: async (json) => {
+      const response = await client.api.conversation.$post({ json });
+      if (!response.ok) {
+        throw new APIError("Something went wrong", response);
+      }
+      return await response.json();
+    },
+    onError: (error: APIError | Error) => {
+      if (error instanceof APIError && error?.response.status === 403) {
+        toast.error("Free trial has expired");
+      }
+      toast.error("Failed to send message");
+    },
+  });
+  return mutation;
+};
+```
+
+## 3. Handle Errors in Components
+
+When using the custom hook in a component, handle errors gracefully in onError.
+
+```ts
+// src/app/(dashboard)/conversation/page.tsx
+import { APIError } from "@/lib/errors";
+
+const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  mutate(
+    { message: values["prompt"] },
+    {
+      onSuccess: (data: sendMessageResponseType) => {
+        setMessages(data.messages);
+        form.reset();
+        router.refresh();
+      },
+      onError: (error: Error | APIError) => {
+        if (error instanceof APIError && error?.response.status === 403) {
+          // Open ProModal
+          open();
+        }
+      },
+    }
+  );
+};
+```
+
+By combining React Query’s powerful error handling capabilities with a custom error class, you can streamline error management in your Next.js applications.
