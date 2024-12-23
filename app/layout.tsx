@@ -7,18 +7,14 @@ import Header from '@/components/Header'
 import SectionContainer from '@/components/SectionContainer'
 import siteMetadata from '@/data/siteMetadata'
 import { Metadata } from 'next'
-import { Space_Grotesk } from 'next/font/google'
+import { Roboto } from 'next/font/google'
 // import { Analytics, AnalyticsConfig } from 'pliny/analytics'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { SearchConfig, SearchProvider } from 'pliny/search'
 import { ThemeProviders } from './theme-providers'
 
-const space_grotesk = Space_Grotesk({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-space-grotesk',
-})
+const roboto = Roboto({ weight: '400', subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),
@@ -66,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
+      className={`${roboto.className} scroll-smooth`}
       // className={`${space_grotesk.variable} scroll-smooth`}
       suppressHydrationWarning
     >
