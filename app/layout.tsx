@@ -10,6 +10,7 @@ import { Metadata } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 // import { Analytics, AnalyticsConfig } from 'pliny/analytics'
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { SearchConfig, SearchProvider } from 'pliny/search'
 import { ThemeProviders } from './theme-providers'
 
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ThemeProviders>
           <Analytics />
+          <SpeedInsights />
           {/* <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} /> */}
           <SectionContainer>
             <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
