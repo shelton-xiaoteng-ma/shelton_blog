@@ -4,10 +4,12 @@ import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import tagData from 'app/tag-data.json'
-import type { Blog } from 'contentlayer/generated'
+import { allBlogs, Blog } from 'contentlayer/generated'
+import { useLang } from 'feature/lang/store'
 import { slug } from 'github-slugger'
+import { POSTS_PER_PAGE } from 'lib/constants'
 import { usePathname } from 'next/navigation'
-import { CoreContent } from 'pliny/utils/contentlayer'
+import { allCoreContent, CoreContent, sortPosts } from 'pliny/utils/contentlayer'
 import { formatDate } from 'pliny/utils/formatDate'
 
 interface PaginationProps {
@@ -15,10 +17,9 @@ interface PaginationProps {
   currentPage: number
 }
 interface ListLayoutProps {
-  posts: CoreContent<Blog>[]
   title: string
-  initialDisplayPosts?: CoreContent<Blog>[]
-  pagination?: PaginationProps
+  pageNumber?: number
+  posts?: CoreContent<Blog>[]
 }
 
 function Pagination({ totalPages, currentPage }: PaginationProps) {
@@ -61,18 +62,29 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
   )
 }
 
-export default function ListLayoutWithTags({
-  posts,
-  title,
-  initialDisplayPosts = [],
-  pagination,
-}: ListLayoutProps) {
+export default function ListLayoutWithTags({ title, pageNumber = 1, posts = [] }: ListLayoutProps) {
+  const { lang } = useLang()
+  // If no posts are passed, use all posts filter by lang
+  // When showing posts by tag, posts fliter by tag instead of lang
+  if (posts.length === 0) {
+    posts = allCoreContent(sortPosts(allBlogs.filter((post) => post.lang === lang)))
+  }
   const pathname = usePathname()
   const tagCounts = tagData as Record<string, number>
   const tagKeys = Object.keys(tagCounts)
   const sortedTags = tagKeys.sort((a, b) => tagCounts[b] - tagCounts[a])
 
+  const initialDisplayPosts = posts.slice(
+    POSTS_PER_PAGE * (pageNumber - 1),
+    POSTS_PER_PAGE * pageNumber
+  )
+
   const displayPosts = initialDisplayPosts.length > 0 ? initialDisplayPosts : posts
+
+  const pagination = {
+    currentPage: pageNumber,
+    totalPages: Math.ceil(posts.length / POSTS_PER_PAGE),
+  }
 
   return (
     <>

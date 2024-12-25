@@ -1,23 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
-import { formatDate } from 'pliny/utils/formatDate'
-import { CoreContent } from 'pliny/utils/contentlayer'
-import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
+import { allBlogs } from 'contentlayer/generated'
+import { useLang } from 'feature/lang/store'
+import { POSTS_PER_PAGE } from 'lib/constants'
+import { usePathname } from 'next/navigation'
+import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer'
+import { formatDate } from 'pliny/utils/formatDate'
+import { useState } from 'react'
 
 interface PaginationProps {
   totalPages: number
   currentPage: number
 }
 interface ListLayoutProps {
-  posts: CoreContent<Blog>[]
   title: string
-  initialDisplayPosts?: CoreContent<Blog>[]
-  pagination?: PaginationProps
+  pageNumber?: number
 }
 
 function Pagination({ totalPages, currentPage }: PaginationProps) {
@@ -60,17 +60,23 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
   )
 }
 
-export default function ListLayout({
-  posts,
-  title,
-  initialDisplayPosts = [],
-  pagination,
-}: ListLayoutProps) {
+export default function ListLayout({ title, pageNumber = 1 }: ListLayoutProps) {
+  const { lang } = useLang()
   const [searchValue, setSearchValue] = useState('')
+  const posts = allCoreContent(sortPosts(allBlogs.filter((post) => post.lang === lang)))
   const filteredBlogPosts = posts.filter((post) => {
     const searchContent = post.title + post.summary + post.tags?.join(' ')
     return searchContent.toLowerCase().includes(searchValue.toLowerCase())
   })
+
+  const initialDisplayPosts = posts.slice(
+    POSTS_PER_PAGE * (pageNumber - 1),
+    POSTS_PER_PAGE * pageNumber
+  )
+  const pagination = {
+    currentPage: pageNumber,
+    totalPages: Math.ceil(posts.length / POSTS_PER_PAGE),
+  }
 
   // If initialDisplayPosts exist, display it if no searchValue is specified
   const displayPosts =

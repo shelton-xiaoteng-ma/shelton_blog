@@ -9,57 +9,23 @@ import {
   RadioGroup,
   Transition,
 } from '@headlessui/react'
+import { locales, useLang } from 'feature/lang/store'
 import { ChevronDownIcon } from 'lucide-react'
-import { useParams, usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const fallbackLng = 'en'
-const secondLng = 'zh'
-const locales = [fallbackLng, secondLng]
-
 const LangSwitch = () => {
-  const pathname = usePathname()
-  const params = useParams()
-  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
   const menubarRef = useRef<HTMLDivElement>(null)
-  const [currentLocale, setCurrentLocale] = useState(fallbackLng)
-
-  const handleLocaleChange = useCallback(
-    (newLocale: string): string => {
-      const segments = pathname!.split('/')
-      if (locales.includes(newLocale) && newLocale != fallbackLng) {
-        segments[1] = newLocale
-      } else {
-        segments.splice(1, 1)
-      }
-      const newPath = segments.join('/').replace(/\/$/, '')
-      return newPath
-    },
-    [pathname]
-  )
+  const { lang, switch_lang } = useLang()
 
   const handleLinkClick = useCallback(
     (newLocale: string) => {
-      const resolvedUrl = handleLocaleChange(newLocale)
-      if (resolvedUrl === '') {
-        router.push('/')
-      } else {
-        router.push(resolvedUrl)
-      }
-      setIsMenuOpen(false)
+      switch_lang(newLocale)
     },
-    [handleLocaleChange, router]
+    [switch_lang]
   )
 
-  useEffect(() => {
-    const localePath = pathname!.split('/')[1]
-    const localeIndex = locales.findIndex((locale) => localePath === locale)
-    if (localePath === fallbackLng) {
-      router.push('/')
-    }
-    setCurrentLocale(localeIndex === -1 ? fallbackLng : locales[localeIndex])
-  }, [pathname, setCurrentLocale, currentLocale, router])
+  useEffect(() => {}, [])
 
   return (
     <div ref={menubarRef} className="relative inline-block text-left">
@@ -72,7 +38,7 @@ const LangSwitch = () => {
               aria-expanded={open}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {currentLocale.charAt(0).toUpperCase() + currentLocale.slice(1)}
+              {lang.charAt(0).toUpperCase() + lang.slice(1)}
               <ChevronDownIcon
                 className={`ml-1 mt-1 transform transition-transform duration-300 ${open ? 'rotate-180' : 'rotate-0'}`}
               />

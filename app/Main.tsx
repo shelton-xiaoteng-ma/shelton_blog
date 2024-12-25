@@ -1,12 +1,20 @@
+'use client'
+
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import NewsletterForm from 'components/NewsletterForm'
+import { allBlogs } from 'contentlayer/generated'
+import { useLang } from 'feature/lang/store'
+import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer'
 import { formatDate } from 'pliny/utils/formatDate'
 
 const MAX_DISPLAY = 5
 
-export default function Home({ posts }) {
+export default function Home() {
+  const { lang } = useLang()
+  const sortedPosts = sortPosts(allBlogs.filter((post) => post.lang === lang))
+  const posts = allCoreContent(sortedPosts)
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
