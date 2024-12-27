@@ -1,0 +1,44 @@
+---
+title: Undo your latest commit in Git
+date: 2022-01-27 15:32:50
+tags: ['Git']
+draft: false
+summary: 
+images: []
+authors: ['default']
+---
+
+## 1. Undo the Last Commit but Keep Changes in the Working Directory
+
+If you want to undo the commit but keep the changes in your working directory (so you can edit or recommit them):
+
+```shell
+git reset --soft HEAD~1
+# --soft keeps the changes staged, so the files are still ready to commit.
+```
+
+## 2. Undo the Last Commit and Unstage the Changes
+
+If you want to undo the commit and unstage the changes (but keep the changes in the working directory):
+
+```shell
+git reset --mixed HEAD~1
+```
+
+## 3. Undo the Last Commit and Discard Changes
+
+If you want to undo the commit and discard all the changes (irreversible):
+
+```shell
+git reset --hard HEAD~1
+```
+
+**Warning**: This will delete your changes permanently. Use with caution.
+
+## 4. Undo the Last Commit in a Shared Branch (Revert)
+
+If the commit has already been pushed to a shared branch and you don’t want to rewrite history, you should create a new commit to reverse it:
+
+```shell
+git revert HEAD
+```
