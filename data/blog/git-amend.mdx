@@ -1,0 +1,57 @@
+---
+title: How to Amend or Re-edit an Earlier Commit in Git
+date: 2024-12-27 15:47:30
+tags: ['Git']
+draft: false
+summary: Learn how to amend or modify an earlier commit in Git using interactive rebase. This guide covers editing commit messages, changing code, and maintaining a clean commit history. Perfect for developers looking to fix mistakes or enhance their Git workflow efficiently.
+images: []
+authors: ['default']
+---
+
+## To re-edit the latest git commit message, run
+
+```shell
+git commit --amend
+```
+
+## Re-edit an Earlier Commit
+
+### 1. Start an Interactive Rebase(replace n with the number of commits you want to go back)
+
+```shell
+git rebase -i HEAD~n
+```
+
+### 2. Choose the commit to edit
+
+```shell
+pick abc123 First commit
+pick def456 Second commit
+pick ghi789 Third commit
+```
+
+Change the word pick to edit (or e) for the commit you want to re-edit:
+
+```shell
+pick abc123 First commit
+edit def456 Second commit
+pick ghi789 Third commit
+```
+
+### 3. Git will stop at the selected commit. To edit the commit message, run
+
+```shell
+git commit --amend
+```
+
+### 4. Continue the Rebase
+
+```shell
+git rebase --continue
+```
+
+## 3. If the Commit Has Been Pushed
+
+```shell
+git push --force
+```
