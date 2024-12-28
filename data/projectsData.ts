@@ -3,14 +3,16 @@ interface Project {
   description: string
   href?: string
   imgSrc?: string
+  videoSrc?: string
 }
 
 const projectsData: Project[] = [
   {
-    title: 'Canvas',
-    description: `Bring your ideas to life with Canvas—powered by AI and creativity`,
-    imgSrc: '/static/images/canvas_demo.png',
-    href: 'https://canvas.sheltonma.top',
+    title: 'Unleash AI',
+    description: `This project is a SaaS AI Platform with Next.js 15, React, Shadcn, Hono.js, Prisma, Stripe, Clerk`,
+    imgSrc: '/static/images/unleash-ai.png',
+    href: 'https://unleashai.sheltonma.top',
+    videoSrc: 'https://www.youtube.com/embed/LXRpLb70-9o?si=cphiUP9NdoAHwDXA',
   },
   {
     title: 'Slack',
@@ -18,6 +20,12 @@ const projectsData: Project[] = [
     imgSrc: '/static/images/slack_demo.png',
     href: 'https://slack.sheltonma.top',
   },
+  // {
+  //   title: 'Canvas',
+  //   description: `Bring your ideas to life with Canvas—powered by AI and creativity`,
+  //   imgSrc: '/static/images/canvas_demo.png',
+  //   href: 'https://canvas.sheltonma.top',
+  // },
 ]
 
 export default projectsData
