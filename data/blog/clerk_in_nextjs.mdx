@@ -29,7 +29,7 @@ authors: ['default']
     CLERK_SECRET_KEY=
     ```
 
-3. Update middleware.ts
+3. Update middleware.ts and handle publicRoute/ProtectedRoute
 
     ```ts
     // src/middleware.ts
@@ -41,6 +41,16 @@ authors: ['default']
       const { userId, redirectToSignIn } = await auth();
 
       if (!userId && isProtectedRoute(req)) {
+        return redirectToSignIn();
+      }
+    });
+
+    // Alternatively, use publicRoute. Note: The sign-in/sign-up route may include additional relative paths (e.g., /sign-in/other), so a wildcard pattern (.*) is necessary for proper configuration.
+    const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
+
+    export default clerkMiddleware(async (auth, req) => {
+      const { userId, redirectToSignIn } = await auth();
+      if (!userId && !isPublicRoute(req)) {
         return redirectToSignIn();
       }
     });
@@ -110,6 +120,14 @@ authors: ['default']
 
 1. Create `src/app/(auth)/sign-in/[[...sign-in]]/page.tsx`
 2. Set environment variables: `NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"`
+
+    ```ts
+    import { SignIn } from "@clerk/nextjs";
+
+    export default function Page() {
+      return <SignIn afterSignOutUrl="/" fallbackRedirectUrl="/dashboard" />;
+    }
+    ```
 
 ## 4. Deployment
 
