@@ -1,0 +1,82 @@
+---
+title: Embed YouTube Video in Next.js
+date: 2024-12-28 15:41:09
+tags: ['Next.js']
+draft: false
+summary: Learn how to embed YouTube videos in a Next.js application and configure the Content Security Policy (CSP) to resolve common errors.
+images: []
+authors: ['default']
+---
+
+## 1. Configure the `iframe` in `page.tsx`
+
+To embed a YouTube video in Next.js, start by creating a reusable `VideoComponent`.
+
+### Create the Video Component
+
+```ts
+interface VideoComponentProps {
+  videoSrc: string
+  title: string
+}
+
+export const VideoComponent = ({ videoSrc, title }: VideoComponentProps) => {
+  return (
+    <div className="aspect-[16/9] w-full">
+      <iframe
+        src={videoSrc}
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerPolicy="strict-origin-when-cross-origin"
+        allowFullScreen
+        className="h-full w-full"
+      ></iframe>
+    </div>
+  )
+}
+```
+
+### Use the Video Component
+
+```ts
+export default Page = () => {
+  const videoSrc = 'https://www.youtube.com/watch?v=LXRpLb70-9o'
+  const title = 'Video title'
+
+  return <VideoComponent videoSrc={videoSrc} title={title} />
+}
+```
+
+## 2. Error: ERR_BLOCKED_BY_CSP
+
+When you try to access the VideoComponent, you might encounter an error message: `This content is blocked. Contact the site owner to fix the issue`.
+
+If you inspect the error in Chrome Developer Tools, you’ll see a message like this: `var loadTimeDataRaw = {"details":"Details","errorCode":"ERR_BLOCKED_BY_CSP",...`
+
+This error occurs because the Content Security Policy (CSP) on your site is blocking the embedded YouTube content.
+
+## 3. What is CSP, and Why Configure It?
+
+CSP, or Content Security Policy, is a browser security feature that restricts the sources from which various resources (like scripts, styles, and iframes) can be loaded. It helps prevent malicious attacks, such as cross-site scripting (XSS).
+
+To allow embedding YouTube videos, you need to update the CSP to permit youtube.com as a source for iframes.
+
+For more information, refer to this guide: [CSP Blocked Loading of Resources](https://content-security-policy.com/examples/blocked-csp/)
+
+## 4. Config CSP in Next.js
+
+To resolve the CSP error and allow embedding YouTube videos, configure the `frame-src` directive in the Content Security Policy.
+
+```ts
+// next.config.js
+const ContentSecurityPolicy = `
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app analytics.umami.is;
+  style-src 'self' 'unsafe-inline';
+  img-src * blob: data:;
+  media-src *.s3.amazonaws.com;
+  connect-src *;
+  font-src 'self';
+  frame-src giscus.app https://www.youtube.com https://www.youtube-nocookie.com;
+`
+```
