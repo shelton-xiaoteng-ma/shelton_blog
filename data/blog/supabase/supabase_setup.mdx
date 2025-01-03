@@ -1,0 +1,51 @@
+---
+title: Supabase Setup  
+date: 2024-12-30 01:04:30  
+tags: ['supabase']  
+draft: false  
+summary: Step-by-step guide to setting up Supabase with database configurations.  
+images: []  
+authors: ['default']  
+---
+
+## Setup
+
+### 1. Sign In and Create a Project
+
+- Visit [Supabase](https://supabase.com/) and create an account.
+- Create a new project and take note of your project URL and API keys.
+
+### 2. Configure API Keys for a Next.js App
+
+Add the following environment variables to your Next.js `.env.local` file:
+
+```config
+# .local.env
+NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+```
+
+## Database
+
+### 1. Using the SQL Editor
+
+Utilize Supabase’s quickstarts, such as the Stripe Subscriptions template, to quickly set up a database schema.
+
+### 2. Table Editor
+
+create tables
+
+1. Enable Row Level Security (RLS): Turn this on for granular access control.
+2. Column Types: Select appropriate types for your data.
+3. Default Values: Define defaults for certain fields.
+4. Timestamps: Set up created_at and updated_at columns. Refer to [Updating timestamps automatically in Supabase](https://dev.to/paullaros/updating-timestamps-automatically-in-supabase-5f5o)
+5. Foreign Keys: Establish relationships between tables.
+
+Configuring Policies
+
+Go to **Authentication -> Policies** and define the following:
+
+1. Allow **insert** operations for authenticated users only.
+2. Restrict users to viewing **only their own data**.
+3. Allow **read access** for all users, where applicable.

@@ -1,0 +1,241 @@
+---
+title: Using Supabase Types in Your TypeScript Project  
+date: 2024-12-30 01:18:13
+tags: ['supabase', 'Next.js']
+draft: false
+summary: A guide to integrating Supabase types and setting up server-side authentication in a Next.js project.
+images: []
+authors: ['default']
+---
+
+## 1. Generating TypeScript Types
+
+Leverage Supabase's TypeScript types for strong type safety in your application. Refer to the [Generating TypeScript Types](https://supabase.com/docs/guides/api/rest/generating-types) guide for details.
+
+Save in src/database.types.ts, create client:
+
+```ts
+// src/utils/supabase/client.ts
+import { Database } from "@/database.types";
+import { createBrowserClient } from "@supabase/ssr";
+
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+```
+
+---
+
+## 2. Setting Up Server-Side Authentication in Next.js
+
+[Setting up Server-Side Auth for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs)
+
+### Step 1: Install Required Packages
+
+Install Supabase libraries for client and server-side rendering:
+
+```bash
+pnpm add @supabase/supabase-js @supabase/ssr
+```
+
+### Step 2: Configure Client and Middleware
+
+1. src/utils/supabase/client.ts
+2. src/utils/supabase/server.ts
+3. src/middleware.ts
+
+    ```ts
+    import { createServerClient } from "@supabase/ssr";
+    import { NextResponse, type NextRequest } from "next/server";
+
+    const isPublicRoute = (request: NextRequest) => {
+      const publicRoutes = [
+        /^\/$/, // Root path
+        /^\/sign-in(.*)/, // Sign-in path
+        /^\/sign-up(.*)/, // Sign-up path
+        /^\/error$/, // Error page
+      ];
+      return publicRoutes.some((route) => route.test(request.nextUrl.pathname));
+    };
+
+    export async function updateSession(request: NextRequest) {
+      let supabaseResponse = NextResponse.next({
+        request,
+      });
+
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value }) =>
+                request.cookies.set(name, value)
+              );
+              supabaseResponse = NextResponse.next({
+                request,
+              });
+              cookiesToSet.forEach(({ name, value, options }) =>
+                supabaseResponse.cookies.set(name, value, options)
+              );
+            },
+          },
+        }
+      );
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user && !isPublicRoute(request)) {
+        // no user, potentially respond by redirecting the user to the login page
+        const url = request.nextUrl.clone();
+        url.pathname = "/sign-in";
+        return NextResponse.redirect(url);
+      }
+
+      return supabaseResponse;
+    }
+
+    ```
+
+### Step 3: Enable Email/Password Authentication
+
+```ts
+const onSignIn = async (values: z.infer<typeof formSchema>) => {
+  setLoading(true);
+  try {
+    const { data, error } = await createClient().auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
+    });
+    if (error) {
+      form.setError("email", {
+        message: error.message || "An unexpected error occurred.",
+      });
+      return;
+    }
+    if (data?.user) {
+      window.location.href = "/dashboard";
+    } else {
+      form.setError("email", {
+        message: "Authentication failed. Please try again.",
+      });
+    }
+  } catch (error) {
+    toast.error(`Unexpected error during sign-in:, ${error}`);
+    form.setError("email", {
+      message: "An unexpected error occurred. Please try again later.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+### Step 4: Enable OAuth Authentication
+
+0. [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google?queryGroups=framework&framework=nextjs)
+1. signInWithOAuth
+
+    ```ts
+    const handleOAuthLogin = async (provider: Provider) => {
+      setLoading(true);
+      // oauth login logic
+      try {
+        const { data, error } = await createClient().auth.signInWithOAuth({
+          provider: provider,
+          options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback` },
+        });
+        if (error) {
+          setLoading(false);
+          toast.error(error.message);
+          return;
+        }
+        if (data?.url) {
+          // Redirect the user to the GitHub login page
+          window.location.href = data.url;
+        } else {
+          toast.error("Unexpected error: No redirect URL provided.");
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    ```
+
+2. At the callback endpoint, handle the code exchange to save the user session.
+
+    ```ts
+    // src/app/(auth)/callback/page.tsx
+    export default function AuthCallbackPage() {
+      const router = useRouter();
+      const searchParams = useSearchParams();
+      const code = searchParams.get("code");
+
+      useEffect(() => {
+        const handleCallback = async () => {
+          const supabase = createClient();
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code!);
+
+          if (error) {
+            console.error("Token Exchange Error", error);
+            alert("Authentication failed. Please try again.");
+            router.push("/");
+          }
+
+          if (data?.session?.access_token) {
+            supabase.auth.setSession(data.session);
+            console.log("User Logged In");
+            // Redirect to your desired page after login
+            router.push("/dashboard");
+          }
+        };
+        // Only run if router query has code
+        if (code) handleCallback();
+      }, [router, code]);
+
+      return (
+        <div className="flex flex-col items-center justify-center h-screen gap-4">
+          <p className="text-xl ">Loading...</p>
+          <Loader className="size-12 animate-spin" />
+        </div>
+      );
+    }
+    ```
+
+### Step 5: Check User Session
+
+```ts
+useEffect(() => {
+  const checkSession = async () => {
+    const {
+      data: { session },
+      error,
+    } = await createClient().auth.getSession();
+
+    if (session) {
+      // User is authenticated
+      router.replace("/dashboard");
+    } else if (error) {
+      toast.error(`Error retrieving session:, ${error.message}`);
+    }
+  };
+  checkSession();
+}, [router]);
+```
+
+## 3. For More Information, See
+
+1. [feat(supabase): Integrate Supabase (Part 1 - Setup)](https://github.com/shelton-xiaoteng-ma/JustNotes/commit/e62a93ab3f3fa7dd075fdce323d68d0d396c5351)
+2. [feat(auth): Integrate Supabase Authentication (Part 2 - email/password)](https://github.com/shelton-xiaoteng-ma/JustNotes/commit/ae724f75af76a037e408b9eaacdb8ccdbba63a5d)
+3. [feat(auth): Integrate Supabase Authentication (Part 3 - OAuth)](https://github.com/shelton-xiaoteng-ma/JustNotes/commit/5bc927bc47597059552ba6528fe7c11b662790b1)
+4. [feat(auth): add OAuth callback page](https://github.com/shelton-xiaoteng-ma/JustNotes/commit/56f87ccaf9aea62c690d257837f59ddafc4cb7e6)
